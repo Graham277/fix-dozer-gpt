@@ -66,7 +66,7 @@ module.exports = {
 
     socials.data.forEach(social => {
       if(social.type == "periscope-profile") return;
-      console.log(social)
+      //console.log(social)
 
       let link = "";
       switch(social.type){
@@ -89,7 +89,7 @@ module.exports = {
           link = `https://www.gitlab.com/${social.foreign_key}`;
           break;
       }
-      console.log(link)
+      //console.log(link)
 
       let button = new ButtonBuilder()
         .setURL(link)
