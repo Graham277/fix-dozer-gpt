@@ -1,47 +1,60 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { google } = require('googleapis');
-async function getEventsForCurrentWeek(apiKey) {
-    const calendar = google.calendar({ version: 'v3', auth: apiKey });
-
-    const today = new Date();
-    const firstDayOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
-    const lastDayOfWeek = new Date(firstDayOfWeek);
-    lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
-
-    const events = await calendar.events.list({
-        calendarId: 'primary', // Change this to the desired calendar ID
-        timeMin: firstDayOfWeek.toISOString(),
-        timeMax: lastDayOfWeek.toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-    });
-
-    return events.data.items.map(event => event.summary);
-}
-const apiKey = 'YOUR_API_KEY';
-getEventsForCurrentWeek(apiKey)
-    .then(events => console.log(events))
-    .catch(error => console.error('Error fetching events:', error));
+const axios = require('axios');
+const fs = require('fs').promises;
+const Jimp = require('jimp');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('events')
-        .setDescription('Fetches events for the current week'),
+        .setName('calendar')
+        .setDescription('Fetches the MM Rambotics calendar for the current month')
+        .addBooleanOption((option) =>
+            option.setName('force')
+                .setDescription('Force a new fetch of the calendar')
+                .setRequired(false)
+        ),
 
     async execute(interaction) {
-        try {
-            await interaction.deferReply(); // Acknowledge the command while fetching events
-
-            const events = await getEventsForCurrentWeek();
-
-            if (events.length > 0) {
-                await interaction.editReply('Events for the current week:\n' + events.join('\n'));
-            } else {
-                await interaction.editReply('No events found for the current week.');
+        async function fetchAndCropImage() {
+            try {
+                const response = await axios.get(`https://api.screenshotone.com/take?access_key=${process.env.SCREENSHOT_API_KEY}&url=https%3A%2F%2Fwww.mmrambotics.com%2Fcalendar&full_page=false&viewport_width=1500&viewport_height=1400&device_scale_factor=1&format=jpg&image_quality=100&delay=5&timeout=20`, {
+                    responseType: 'arraybuffer' 
+                });
+                
+                const image = await Jimp.read(response.data);
+                
+                const cropWidth = 750;
+                const cropHeight = 1100;
+                const cropX = (image.bitmap.width - cropWidth) / 2;
+                const cropY = (image.bitmap.height - cropHeight) / 2 + 50;
+                image.crop(cropX, cropY, cropWidth, cropHeight);
+                
+                await image.writeAsync('./images/calendar.png');
+            } catch (error) {
+                console.error('Error fetching or cropping image:', error.message);
             }
-        } catch (error) {
-            console.error('Error fetching events:', error);
-            await interaction.editReply('An error occurred while fetching events.');
         }
+
+        async function isImageDateStale() {
+            try {
+                const imageDate = await fs.readFile('./images/image_date.txt', 'utf-8');
+                const currentDate = new Date();
+                const lastFetchedDate = new Date(imageDate);
+                const oneWeekAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+                return lastFetchedDate < oneWeekAgo || interaction.options.getBoolean('force');
+            } catch (error) {
+                console.error('Error reading image date file:', error.message);
+                return true; 
+            }
+        }
+
+        // super simple ! dont look above :)
+        await interaction.deferReply();
+        
+        if (await isImageDateStale() || interaction.options.getBoolean('force')) {
+            await fetchAndCropImage();
+            await fs.writeFile('./images/image_date.txt', new Date().toISOString(), 'utf-8');
+        }
+
+        interaction.editReply({ files: ["./images/calendar.png"] });
     },
 };
