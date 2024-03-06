@@ -9,19 +9,14 @@ module.exports = {
   data: new SlashCommandBuilder()
   .setName("food")
   .setDescription("Gets the provided food/drink for the next meeting")
-//   .addBooleanOption((option) =>
-//     option.setName('week')
-//     .setDescription('Return food for the next week')
-//     .setRequired(false)
-//   )
-  .addStringOption((option) =>
-    option.setName('lome-key')
-    .setDescription('Update the lome planner for season')
-    .setRequired(false)
-  )
   .addStringOption((option) =>
     option.setName('date') 
     .setDescription('Get the food for a specific date (yyyy-mm-dd)')
+    .setRequired(false)
+  )
+  .addStringOption((option) =>
+    option.setName('lome-key')
+    .setDescription('Update the lome planner for season')
     .setRequired(false)
   ),
 
@@ -43,9 +38,7 @@ module.exports = {
         }
     }
 
-    let embed; 
     let lomeKey = fs.readFileSync("food.txt", "utf8");
-    let week = interaction.options.getBoolean("week");
     
     const res = await axios.get(`https://grow.withlome.com/api/cards/${lomeKey}/votes`);
 
@@ -71,7 +64,23 @@ module.exports = {
     const closestFoodItem = findClosestUpcomingItem(res.data.filter(item => item.icon === "plate"), date);
     const closestDessertDrinkItem = findClosestUpcomingItem(res.data.filter(item => item.icon === "ice-cream"), date);
     
+    let food;
+    let drink;
+    if (closestFoodItem && closestFoodItem.voters != null) {
+        food = closestFoodItem.voters.map(voter => voter.custom_fields.answer.trim().toLowerCase()).join(", ");
+    } else {
+        food = "no food provided";
+    }
+    
+    if (closestDessertDrinkItem && closestDessertDrinkItem.voters != null) {
+        drink = closestDessertDrinkItem.voters.map(voter => voter.custom_fields.answer.trim().toLowerCase()).join(", ")
+        meetDate = date
+    } else {
+        drink = "no dessert/drink provided";
+        meetDate = date;
+    }
+    
     // Output the closest upcoming items and their contents
-    interaction.editReply(`The food for the meeting <t:${dayjs(meetDate).add(1, 'day').subtract(1.5, 'hours').unix()}:R> is:\n🍔 - ${closestFoodItem.voters.map(voter => voter.custom_fields.answer.trim().toLowerCase()).join(", ")}\n🍦 - ${closestDessertDrinkItem.voters.map(voter => voter.custom_fields.answer.trim().toLowerCase()).join(", ")}`);
+    interaction.editReply(`The food for the meeting <t:${dayjs(meetDate).add(1, 'day').subtract(1.5, 'hours').unix()}:R> is:\n🍔 - ${food}\n🍦 - ${drink}`);
   },
 };

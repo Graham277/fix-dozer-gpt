@@ -7,7 +7,7 @@ const { time } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-  .setName("events")
+  .setName("upcoming")
   .setDescription("Gets the upcoming and past events for a team")
   .addStringOption((option) =>
     option.setName('team')
