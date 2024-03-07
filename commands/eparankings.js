@@ -7,8 +7,8 @@ const { table } = require('table');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("rankings")
-        .setDescription("Gets the rankings for a competition")
+        .setName("eparankings")
+        .setDescription("Gets the EPA rankings")
         .addBooleanOption((option) =>
             option.setName('mobile')
                 .setDescription('Mobile friendly results')
@@ -48,8 +48,6 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply();
-        interaction.editReply("This command doesn't exist teehee")
-        return
 
         let config = {
             method: 'get',
