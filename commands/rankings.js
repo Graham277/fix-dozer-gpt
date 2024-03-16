@@ -1,4 +1,4 @@
-// WIP RN
+// FIX NUMBER OPTION ?
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
@@ -10,47 +10,32 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("rankings")
         .setDescription("Gets the rankings for a competition")
+        .addStringOption((option) =>
+            option.setName('event-key')
+                .setDescription('Event key (eg. 2023oncmp)')
+                .setRequired(true)
+        )
         .addBooleanOption((option) =>
             option.setName('mobile')
-                .setDescription('Mobile friendly results')
+                .setDescription('Mobile friendly results (sort-by is ignored)')
                 .setRequired(false)
         )
-        .addStringOption((option) =>
+        .addNumberOption((option) =>
             option.setName('sort-by')
-                .setDescription('Metric to sort by (defaults to unitless EPA)')
+                .setDescription('Metric to sort by (defaults to ranking score)')
                 .setRequired(false)
                 .addChoices(
-					{ name: 'Normal EPA', value: 'norm_epa' },
-					{ name: 'Total EPA', value: 'total_epa' },
-					{ name: 'Auto EPA', value: 'auto_epa' },
-					{ name: 'Teleop EPA', value: 'teleop_epa' },
-					{ name: 'Endgame EPA', value: 'endgame_epa' },
-					{ name: 'Melody RP', value: 'rp_1_epa' },
-					{ name: 'Harmony RP', value: 'rp_2_epa' },
-					{ name: 'Winrate', value: 'winrate' },
-				)
-        )
-        .addStringOption((option) =>
-            option.setName('region')
-                .setDescription('Get only teams from a specific region (defaults to ontario)')
-                .setRequired(false)
-                .addChoices(
-					{ name: 'Ontario', value: 'ont' },
-					{ name: 'Canada', value: 'canada' },
-					{ name: 'World', value: 'all' },
-				)
+                    { name: 'Ranking Avg', value: 0 },
+                    { name: 'Avg Coop', value: 1 },
+                    { name: 'Avg Match', value: 2 },
+                    { name: 'Avg Auto', value: 3 },
+                    { name: 'Avg Stage', value: 4 },
+                )
         ),
-    // .addStringOption((option) =>
-    //     option.setName('team')
-    //         .setDescription('Team number (defaults to 2200)')
-    //         .setRequired(false)
-    // ),
-    // option to narrow down locations canada world results amount etc.
 
     async execute(interaction) {
         await interaction.deferReply();
-        interaction.editReply("This command doesn't exist teehee")
-        return
+
 
         let config = {
             method: 'get',
@@ -59,57 +44,38 @@ module.exports = {
                 'X-TBA-Auth-Key': process.env.TBA
             }
         };
-        const prettyMetric = {
-            "norm_epa": "Normal EPA",
-            "total_epa": "Total EPA",
-            "auto_epa": "Auto EPA",
-            "teleop_epa": "Teleop EPA",
-            "endgame_epa": "Endgame EPA",
-            "rp_1_epa": "Melody RP",
-            "rp_2_epa": "Harmony RP",
-            "winrate": "Winrate",
-          }
+        const prettyMetric =[
+            'Ranking Avg',
+            'Avg Coop',
+            'Avg Match',
+            'Avg Auto',
+            'Avg Stage'
+        ]
 
-        let metric = interaction.options.getString("sort-by") || "unitless_epa";
+        let index = interaction.options.getString("sort-by") || 0;
+        (index > prettyMetric.length) ? index = 0 : index;
+        let key = interaction.options.getString("event-key");
 
-        let regionRaw = interaction.options.getString("region");
-        let region;
-        switch(regionRaw){
-            case "all":
-                region = "";
-                regionRaw = "the World"
-                break;
-            case "canada":
-                region = "&country=Canada"
-                regionRaw = "Canada"
-                break;
-            case "ont":
-            default:
-                region = "&district=ont"
-                regionRaw = "Ontario"
-                break;
-        }
-
-        const res = await axios.get(`https://api.statbotics.io/v3/team_years?year=${dayjs().year()}&metric=${metric}&limit=15${region}
-        `, config);
+        const res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${key}/rankings`, config);
 
         let mobileVersion = interaction.options.getBoolean("mobile") || false;
-
         let embed;
 
+        console.log(res.data.rankings)
+
         if (mobileVersion) {
-            let msg = '';
-            res.data.forEach(team => {
-                msg += `${team.epa.unitless} - ${team.name} (${team.team})\n`;
-            });
+            let msg = '*Rank - Team - Ranking Avg*\n';
+            for(let i = 0; i < ((res.data.rankings.length > 10) ? 10 : res.data.rankings.length); i++) {
+                msg += `${emojify(res.data.rankings[i].rank)} - **${res.data.rankings[i].team_key.substring(3)}** - ${res.data.rankings[i].sort_orders[index]}\n`;
+            }
             embed = new EmbedBuilder()
                 .setColor("#F79A2A")
-                .setTitle("EPA Rankings for "+regionRaw+" "+dayjs().year())
-                .setDescription("```" + msg + "```")
-        
+                .setTitle("Rankings at "+key)
+                .setDescription(msg)
+
         } else {
             let data = [
-                ['Team', 'Name', prettyMetric[metric], 'WR*'],
+                ['Rank', 'Team', prettyMetric[index], 'W-L-T', 'Played']
             ];
 
             const tableConfig = {
@@ -122,52 +88,57 @@ module.exports = {
                 ],
                 header: {
                     alignment: 'center',
-                    content: 'EPA Rankings for '+regionRaw+" "+dayjs().year(),
+                    content: 'Rankings for ' + key + ' by ' + prettyMetric[index],
                 },
             };
 
             let special;
-            res.data.forEach(team => {
-                switch(metric){
-                    case "norm_epa":
-                        special = team.epa.norm_epa
-                        break;
-                    case "total_epa":
-                        special = team.epa.breakdown.total_points.mean
-                        break;
-                    case "auto_epa":
-                        special = team.epa.breakdown.auto_points.mean
-                        break;           
-                    case "teleop_epa":
-                        special = team.epa.breakdown.teleop_points.mean
-                        break;                   
-                    case "endgame_epa":
-                        special = team.epa.breakdown.endgame_points.mean
-                        break;
-                    case "melody_rp":
-                        special = team.epa.breakdown.melody_rp.mean
-                        break;
-                    case "harmony_rp":
-                        special = team.epa.breakdown.harmony_rp.mean
-                        break;
-                    case "winrate":
-                        special = team.record.season.winrate
-                        break;
-                    case "epa_unitless":
-                    default:
-                        special = team.epa.unitless
-                        break;
-                }
-                data.push([team.team, team.name, special, team.epa.ranks.total.rank]);
+            let team;
+            let sorted = res.data.rankings.sort((a, b) => {
+                return b.sort_orders[index] - a.sort_orders[index];
             });
+        
+            for(let i = 0; i < ((sorted.length > 15) ? 15 : sorted.length); i++) {
+                
+                team = sorted[i];
+                special = team.sort_orders[index]
+                
+                data.push([team.rank, team.team_key.substring(3), special, Object.values(team.record).join("-"), team.matches_played]);
+            };
             embed = new EmbedBuilder()
                 .setColor("#F79A2A")
                 .setDescription("```" + table(data, tableConfig) + "```")
-                .setFooter({text: "*World Rank"})
         }
 
         interaction.editReply({
             embeds: [embed]
         })
+
+        function emojify(rank) {
+            switch (rank) {
+                case 1:
+                    return ":first_place:";
+                case 2:
+                    return ":second_place:";
+                case 3:
+                    return ":third_place:";
+                case 4:
+                    return ":four:";
+                case 5:
+                    return ":five:";
+                case 6:
+                    return ":six:";
+                case 7:
+                    return ":seven:";
+                case 8:
+                    return ":eight:";
+                case 9:
+                    return ":nine:";
+                case 10:
+                    return ":keycap_ten:";
+                default:
+                    return rank;
+            }
+        }
     },
 };

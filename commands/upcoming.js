@@ -44,7 +44,7 @@ module.exports = {
         let startRelative = time(startDate, 'R');
         let endDate = new Date(event.end_date);
 
-        msg += "[**"+event.name+`**](<https://www.thebluealliance.com/event/${event.key}>)\n`+time(startDate)+"-"+time(endDate)+` (${time(startDate, 'R')})\n`+`${event.city}, ${event.state_prov}, ${event.country}\n\n`;
+        msg += "[**"+event.name+`**](<https://www.thebluealliance.com/event/${event.key}>) (${event.key})\n`+time(startDate)+"-"+time(endDate)+` (${time(startDate, 'R')})\n`+`${event.city}, ${event.state_prov}, ${event.country}\n\n`;
     });
 
     let yearStr = interaction.options.getString("year") ? year = "in "+interaction.options.getString("year") : "";

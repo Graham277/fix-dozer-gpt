@@ -41,3 +41,5 @@ Links
 
 // competition current rankings (need id)
 //https://www.thebluealliance.com/api/v3/district/2023ont/rankings
+
+//alliances at an event
