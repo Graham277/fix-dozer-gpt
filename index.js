@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 const axios = require("axios");
-const roboticsCmd = require("./roboticsCmds");
 
 dotenv.config();
 const { Client, Collection, Events, GatewayIntentBits } = require("discord.js");
