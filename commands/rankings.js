@@ -20,16 +20,16 @@ module.exports = {
                 .setDescription('Mobile friendly results (sort-by is ignored)')
                 .setRequired(false)
         )
-        .addNumberOption((option) =>
+        .addStringOption((option) =>
             option.setName('sort-by')
                 .setDescription('Metric to sort by (defaults to ranking score)')
                 .setRequired(false)
                 .addChoices(
-                    { name: 'Ranking Avg', value: 0 },
-                    { name: 'Avg Coop', value: 1 },
-                    { name: 'Avg Match', value: 2 },
-                    { name: 'Avg Auto', value: 3 },
-                    { name: 'Avg Stage', value: 4 },
+                    { name: 'Ranking Avg', value: "0" },
+                    { name: 'Avg Coop', value: "1" },
+                    { name: 'Avg Match', value: "2" },
+                    { name: 'Avg Auto', value: "3" },
+                    { name: 'Avg Stage', value: "4" },
                 )
         ),
 
@@ -52,7 +52,7 @@ module.exports = {
             'Avg Stage'
         ]
 
-        let index = interaction.options.getString("sort-by") || 0;
+        let index = parseInt(interaction.options.getString("sort-by")) || 0;
         (index > prettyMetric.length) ? index = 0 : index;
         let key = interaction.options.getString("event-key");
 
@@ -64,9 +64,9 @@ module.exports = {
         console.log(res.data.rankings)
 
         if (mobileVersion) {
-            let msg = '*Rank - Team - Ranking Avg*\n';
+            let msg = '*Rank - Team - '+prettyMetric[index]+'*\n';
             for(let i = 0; i < ((res.data.rankings.length > 10) ? 10 : res.data.rankings.length); i++) {
-                msg += `${emojify(res.data.rankings[i].rank)} - **${res.data.rankings[i].team_key.substring(3)}** - ${res.data.rankings[i].sort_orders[index]}\n`;
+                msg += `${emojify(res.data.rankings[i].rank)} - **${res.data.rankings[i].team_key.substring(3)}** - ${res.data.rankings[i].sort_orders[index].toFixed(2)}\n`;
             }
             embed = new EmbedBuilder()
                 .setColor("#F79A2A")

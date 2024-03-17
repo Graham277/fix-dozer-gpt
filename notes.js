@@ -43,3 +43,8 @@ Links
 //https://www.thebluealliance.com/api/v3/district/2023ont/rankings
 
 //alliances at an event
+
+// jake google sheets backend i made
+// https://dozer-backend.vercel.app/team/2200
+// https://dozer-backend.vercel.app/all-teams
+// https://dozer-backend.vercel.app/top-teams?category=Speaker

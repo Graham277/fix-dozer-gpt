@@ -22,6 +22,7 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply();
+    return interaction.editReply("This command is not yet implemented");
 
     let team = interaction.options.getString("team") || 2200;
     let year = interaction.options.getString("year") || dayjs().year();
