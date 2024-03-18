@@ -5,14 +5,14 @@ const axios = require("axios");
 const { time } = require('discord.js');
 const { table } = require('table');
 
-
+// make it default to closest 2200 event
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("rankings")
         .setDescription("Gets the rankings for a competition")
         .addStringOption((option) =>
             option.setName('event-key')
-                .setDescription('Event key (eg. 2023oncmp)')
+                .setDescription('Event key (eg. 2023oncmp) defaults to closest 2200 match')
                 .setRequired(true)
         )
         .addBooleanOption((option) =>

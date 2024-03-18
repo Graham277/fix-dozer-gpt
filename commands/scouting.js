@@ -3,6 +3,7 @@ const dayjs = require("dayjs");
 const axios = require("axios");
 const { time } = require('discord.js');
 // ask jake about these bc idk what's percentage or not
+// make non mobile mode 👀 ?
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("scouting")
