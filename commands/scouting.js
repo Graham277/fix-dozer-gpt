@@ -36,10 +36,21 @@ module.exports = {
           { name: 'Sum Endgame Points', value: "Sum_Endgame_Points" },
           { name: 'Sum Total Points', value: "Sum_Total_Points" },
         )
+    )
+    .addBooleanOption((option) =>
+      option.setName('overall-scoring')
+        .setDescription('Show current overall scoring image')
+        .setRequired(false)
     ),
 
   async execute(interaction) {
     await interaction.deferReply();
+
+    if(interaction.options.getBoolean("overall-scoring")){
+      return interaction.editReply({
+        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRd3PjVAlosmxU1u5N223lgHfgukW5bLagD_Gkz-KiR793DlrelyzhnEATaPbiqDxNeQVLrS7PmVsOb/pubchart?oid=1047394600&format=image",
+      });
+    }
 
     let team = interaction.options.getString("team") || null;
     let sortBy = interaction.options.getString("sort-by") || "Sum_Total_Points";
