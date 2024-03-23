@@ -35,7 +35,22 @@ module.exports = {
     };
 
     res.data.forEach((alliance) => {
-        embed.fields.push({ name: alliance.name, value: alliance.picks.map((alliance) => alliance.substring(3)).join(", ")+"\n"+alliance.status.status, inline: true});
+        let allianceStatus = "";
+        switch(alliance.status.status){
+            case "won":
+                allianceStatus = "🥇";
+                break;
+            case "eliminated":
+                allianceStatus = "🪦";
+                break;
+            case "playing":
+                allianceStatus = "🟢";
+                break;
+            default:
+                allianceStatus = `(${alliance.status.status})`;
+                console.log(allianceStatus);
+        }
+        embed.fields.push({ name: allianceStatus+" "+alliance.name, value: alliance.picks.map((alliance) => alliance.substring(3)).join(", ")+"\n", inline: true});
     })
     
     
