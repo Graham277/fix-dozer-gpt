@@ -21,7 +21,7 @@ module.exports = {
     let embed; 
     let msg = `**The Blue Alliance**\n`;
 
-    axios.get(`https://www.thebluealliance.com/api/v3/status`, config)
+    await axios.get(`https://www.thebluealliance.com/api/v3/status`, config)
         .then(res => {
             if (res.status !== 500 && res.status !== 404) {
                 msg += `Status: ${(res.status == 200) ? "Online!" : res.status}\n`;
@@ -41,7 +41,7 @@ module.exports = {
         
     msg += '\n**Statbotics**\n'
     
-    axios.get(`https://www.statbotics.io/event/api?rand=${dayjs().unix()}`)
+    await axios.get(`https://www.statbotics.io/event/api?rand=${dayjs().unix()}`)
         .then(res => {
             msg += `Status: ${res.status}\n`;
         })
@@ -55,7 +55,7 @@ module.exports = {
 
     msg += '\n**Official First API**\n'
 
-    axios.get(`https://frc-api.firstinspires.org/v3.0?rand=${dayjs().unix()}`)
+    await axios.get(`https://frc-api.firstinspires.org/v3.0?rand=${dayjs().unix()}`)
         .then(res => {
             if (res.data.status) {
                 msg += `Status: ${res.data.status}\n`;

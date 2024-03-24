@@ -48,3 +48,6 @@ Links
 // https://dozer-backend.vercel.app/team/2200
 // https://dozer-backend.vercel.app/all-teams
 // https://dozer-backend.vercel.app/top-teams?category=Speaker
+
+// match prediction (auto fill match key)
+// add way to auto fill event key with names from this season?

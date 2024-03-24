@@ -3,99 +3,123 @@ const { SlashCommandBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
 const { time } = require('discord.js');
-
+let config = {
+  method: 'get',
+  maxBodyLength: Infinity,
+  headers: { 
+    'X-TBA-Auth-Key': process.env.TBA
+  }
+};
 module.exports = {
   data: new SlashCommandBuilder()
   .setName("match")
   .setDescription("Gets the data for a given match")
-  .addStringOption((option) =>
-    option.setName('event')
-    .setDescription('Event the match is at (defaults to team 2200\'s closest event)')
-    .setRequired(false)
+  .addSubcommand(subcommand =>
+		subcommand
+			.setName('2200')
+			.setDescription('Get the latest match 2200 played in')
   )
-  .addStringOption((option) =>
-    option.setName('match-key')
-    .setDescription('Eg. qm1, sf4, f1m1 (defaults to latest 2200 match')
-    .setRequired(false)
+  .addSubcommand(subcommand =>
+		subcommand
+			.setName('team')
+			.setDescription('Get the last match a team played in')
+			.addStringOption(option => 
+        option.setName('team').setDescription('The team number to get the latest match for').setRequired(true)
+      )
+  )
+	.addSubcommand(subcommand =>
+		subcommand
+			.setName('specific')
+			.setDescription('Get the data for a specific match')
+      .addStringOption((option) =>
+        option.setName('event')
+        .setDescription('Event the match is at (defaults to team 2200\'s closest event)')
+        .setRequired(false)
+      )
+      .addStringOption((option) =>
+        option.setName('match-key')
+        .setDescription('Eg. qm1, sf4, f1m1 (defaults to latest 2200 match)')
+        .setRequired(false)
+      )
   ),
   
 
   async execute(interaction) {
     await interaction.deferReply();
-    let event = interaction.options.getString("event") || await recentEventKey(2200);
+    console.log(interaction.options.getSubcommand());
+    let event = interaction.options.getString("event") 
+    let match = interaction.options.getString("match-key");
+    let team = interaction.options.getString("team");
+    if(!event && !match){
+      team = 2200;
+    }
+    if(!event){
+      event = (await recentEvent(2200)).key;
+      if(!event){
+        return interaction.editReply("Team "+team+" has not been to any events yet!")
+      }
+    }
+    if (!match) {
+      match = (await recentTeamMatch(2200, event)).key;
+      if(!match){
+        return interaction.editReply("Team "+team+" has not played a match at this event yet!")
+      }
+    } else{
+      match = axios.get(`https://www.thebluealliance.com/api/v3/match/${match}/simple`, config);
+    }
 
-    let team = interaction.options.getString("match-key") || await recentMatchKey(2200, event);
+    interaction.editReply("Getting data for match "+match+" at event "+event+" for team "+team+"...");
+    
 
-    let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        headers: { 
-          'X-TBA-Auth-Key': process.env.TBA
-        }
-    };
-    const res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${year}/simple`, config);
+    // interaction.editReply({
+    //     embeds: [embed],
+    // })
+
+    // ensure event has started, don't return future events
+    async function recentEvent(team) {
+      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
+      const currentDate = dayjs();
       
-    let msg = '';
-    let dateSorted = res.data.sort((a, b) => {
-        return new Date(a.start_date) - new Date(b.start_date);
-    });
-    dateSorted.forEach(event => {
-        let startDate = new Date(event.start_date);
-        let startRelative = time(startDate, 'R');
-        let endDate = new Date(event.end_date);
-
-        msg += "[**"+event.name+`**](<https://www.thebluealliance.com/event/${event.key}>)\n`+time(startDate)+"-"+time(endDate)+` (${time(startDate, 'R')})\n`+`${event.city}, ${event.state_prov}, ${event.country}\n\n`;
-    });
-
-    let yearStr = interaction.options.getString("year") ? year = "in "+interaction.options.getString("year") : "";
-    const embed = {
-      color: 0xF79A2A,
-      description: msg,
-      title: `Upcoming Events for Team ${team} ${yearStr}`,
-    };
-    
-    
-    interaction.editReply({
-        embeds: [embed],
-    })
-
-    async function recentEventKey(team){
-      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`);
-      const currentDate = dayjs();
-      const closestEvent = response.data.reduce((closest, event) =>
-        dayjs(event.start_date).diff(currentDate, 'milliseconds') >= 0 &&
-        dayjs(event.start_date).diff(currentDate, 'milliseconds') < closest.difference
-          ? { key: event.key, difference: dayjs(event.start_date).diff(currentDate, 'milliseconds') }
-          : closest, { difference: Infinity });
-      console.log("Closest event key to current date:", closestEvent.key);
-      return closestEvent.key;
+      const startedEvents = response.data.filter(event =>
+          dayjs(event.start_date).diff(currentDate, 'milliseconds') <= 0
+      );
+  
+      if (startedEvents.length === 0) {
+          console.log("No events have started for team", team);
+          return null;
+      }
+  
+      const closestEvent = startedEvents.reduce((closest, event) =>
+          dayjs(event.start_date).diff(currentDate, 'milliseconds') < closest.difference
+              ? { key: event.key, difference: dayjs(event.start_date).diff(currentDate, 'milliseconds') }
+              : closest, { difference: Infinity });
+  
+      // console.log("Closest event key to current date:", closestEvent.key);
+      return closestEvent;
     }
-
-    async function recentMatchKey(team, event){
-      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/event/${event}/matches/simple`);
+  
+    // only matches that have an actual time, meaning they've finished
+    async function recentTeamMatch(team, event) {
+      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/event/${event}/matches/simple`, config);
       const currentDate = dayjs();
-      const closestMatch = response.data.reduce((closest, match) =>
-        dayjs(match.actual_time).diff(currentDate, 'milliseconds') >= 0 &&
-        dayjs(match.actual_time).diff(currentDate, 'milliseconds') < closest.difference
-          ? { key: match.key, difference: dayjs(match.actual_time).diff(currentDate, 'milliseconds') }
-          : closest, { difference: Infinity });
-      console.log("Closest match key to current date:", closestMatch.key);
-      return closestMatch.key;
+      
+      const validMatches = response.data.filter(match =>
+          match.actual_time && dayjs(match.actual_time).diff(currentDate, 'milliseconds') <= 0
+      );
+  
+      if (validMatches.length === 0) {
+          // console.log("No matches have occurred for team", team, "at event", event);
+          return null;
+      }
+  
+      const closestMatch = validMatches.reduce((closest, match) =>
+          dayjs(match.actual_time).diff(currentDate, 'milliseconds') < closest.difference
+              ? { key: match.key, difference: dayjs(match.actual_time).diff(currentDate, 'milliseconds') }
+              : closest, { difference: Infinity });
+  
+      // console.log("Closest match key to current date:", closestMatch.key);
+      return closestMatch;
     }
-    // function getLatestMatchData(teamKey) {
-    //   let latestMatch = null;
-    //   let latestMatchTime = 0;
-    
-    //   for (const match of matches) {
-    //     if (match.alliances.blue.team_keys.includes(teamKey) || match.alliances.red.team_keys.includes(teamKey)) {
-    //       if (match.time > latestMatchTime) {
-    //         latestMatch = match;
-    //         latestMatchTime = match.time;
-    //       }
-    //     }
-    //   }
-    
-    //   return latestMatch;
-    // }
+  
   },
 };
