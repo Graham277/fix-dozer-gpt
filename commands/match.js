@@ -1,8 +1,9 @@
 // NOT DONE
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
-const { time } = require('discord.js');
+const Canvas = require('@napi-rs/canvas');
+
 let config = {
   method: 'get',
   maxBodyLength: Infinity,
@@ -10,6 +11,7 @@ let config = {
     'X-TBA-Auth-Key': process.env.TBA
   }
 };
+
 module.exports = {
   data: new SlashCommandBuilder()
   .setName("match")
@@ -46,29 +48,86 @@ module.exports = {
 
   async execute(interaction) {
     await interaction.deferReply();
-    console.log(interaction.options.getSubcommand());
+
+    // console.log(interaction.options.getSubcommand());
     let event = interaction.options.getString("event") 
     let match = interaction.options.getString("match-key");
     let team = interaction.options.getString("team");
-    if(!event && !match){
+    if(!team){
       team = 2200;
     }
     if(!event){
-      event = (await recentEvent(2200)).key;
+      event = (await recentEvent(team)).key;
       if(!event){
         return interaction.editReply("Team "+team+" has not been to any events yet!")
       }
     }
     if (!match) {
-      match = (await recentTeamMatch(2200, event)).key;
+      match = (await recentTeamMatch(team, event));
+      
       if(!match){
         return interaction.editReply("Team "+team+" has not played a match at this event yet!")
+      } else{
+        match = match.match;
       }
-    } else{
-      match = axios.get(`https://www.thebluealliance.com/api/v3/match/${match}/simple`, config);
+    } 
+
+    let msg;
+    // let content = "";
+
+    msg = `${match.alliances.red.team_keys.map(team => team.slice(3)).join(", ")} vs ${match.alliances.blue.team_keys.map(team => team.slice(3)).join(", ")}\n`;
+    if(match.winning_alliance == "red"){
+      msg += `**${match.alliances.red.score}** - ${match.alliances.blue.score}\n`;
+    } else {
+      msg += `${match.alliances.red.score} - **${match.alliances.blue.score}**\n`;
+    }
+    
+    
+    console.log(team, event, match);
+    let embed = {
+      color: 0xF79A2A,
+      description: msg,
+      title: `__${prettyCompLevel(match.comp_level)} ${(match.comp_level == "qm") ? `` : `${match.set_number}-`}${match.match_number}__\n`,
+      timestamp: dayjs.unix(match.actual_time).toISOString(),
     }
 
-    interaction.editReply("Getting data for match "+match+" at event "+event+" for team "+team+"...");
+    function prettyCompLevel(level) {
+      switch(level){
+        case "qm":
+          return "Quals";
+        case "ef":
+          return "Eighths";
+        case "qf":
+          return "Quarters";
+        case "sf":
+          return "Semis";
+        case "f":
+          return "Finals";
+      }
+    }
+
+    const canvas = Canvas.createCanvas(1920, 965);
+		const context = canvas.getContext('2d');
+    const background = await Canvas.loadImage('images/redblue.png');
+    
+    context.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+
+    context.font = '60px sans-serif';
+    context.fillStyle = '#ffffff';
+
+    context.fillText(`test`, canvas.width / 2.5, canvas.height /17);
+
+    const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'match.png' });
+
+    interaction.editReply({ files: [attachment] });
+
+    // interaction.editReply({embeds: [embed]});
+    if(match.videos.length > 0){
+      // fix later for other video sites
+      interaction.followUp(`https://www.youtube.com/watch?v=${match.videos[0].key}`)
+    }
     
 
     // interaction.editReply({
@@ -100,7 +159,7 @@ module.exports = {
   
     // only matches that have an actual time, meaning they've finished
     async function recentTeamMatch(team, event) {
-      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/event/${event}/matches/simple`, config);
+      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/event/${event}/matches`, config);
       const currentDate = dayjs();
       
       const validMatches = response.data.filter(match =>
@@ -112,10 +171,14 @@ module.exports = {
           return null;
       }
   
-      const closestMatch = validMatches.reduce((closest, match) =>
-          dayjs(match.actual_time).diff(currentDate, 'milliseconds') < closest.difference
-              ? { key: match.key, difference: dayjs(match.actual_time).diff(currentDate, 'milliseconds') }
-              : closest, { difference: Infinity });
+      const closestMatch = validMatches.reduce((closest, match) => {
+        const matchDifference = dayjs(match.actual_time).diff(currentDate, 'milliseconds');
+        if (Math.abs(matchDifference) < Math.abs(closest.difference)) {
+            return { match: match, difference: matchDifference };
+        } else {
+            return closest;
+        }
+    }, { difference: Infinity });
   
       // console.log("Closest match key to current date:", closestMatch.key);
       return closestMatch;

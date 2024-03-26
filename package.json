@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/n/a#readme",
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.25",
+    "@napi-rs/canvas": "^0.1.51",
     "axios": "^1.6.7",
     "dayjs": "^1.11.7",
     "discord.js": "^14.14.1",
