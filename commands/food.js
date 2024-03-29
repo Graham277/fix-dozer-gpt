@@ -18,11 +18,16 @@ module.exports = {
     option.setName('lome-key')
     .setDescription('Update the lome planner for season')
     .setRequired(false)
-  ),
-
-  async execute(interaction) {
+    ),
+    
+    async execute(interaction) {
     await interaction.deferReply();
-
+        
+    let date = interaction.options.getString("date") ? fromDate = new Date(interaction.options.getString("date")) : fromDate = new Date();
+    
+    if (date == "Invalid Date") {
+        return interaction.editReply("Invalid date format. Please use the format `yyyy-mm-dd`");
+    }
     if(interaction.options.getString("lome-key")){
         if(authorized_ids.includes(interaction.user.id)){
             let newKey = interaction.options.getString("lome-key");
@@ -58,7 +63,6 @@ module.exports = {
         meetDate = closestItemDate;
         return closestItem;
     }
-    let date = interaction.options.getString("date") ? fromDate = new Date(interaction.options.getString("date")) : fromDate = new Date();
     
     // Find the closest upcoming food item
     const closestFoodItem = findClosestUpcomingItem(res.data.filter(item => item.icon === "plate"), date);

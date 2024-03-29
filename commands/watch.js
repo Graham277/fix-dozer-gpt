@@ -27,8 +27,17 @@ module.exports = {
     let embed;
     let key = interaction.options.getString("event-key");
 
-    const res = await axios.get(`https://www.thebluealliance.com/api/v3/events/${dayjs().year()}`, config);
-
+    let res;
+    
+    try{
+        res = await axios.get(`https://www.thebluealliance.com/api/v3/events/${dayjs().year()}`, config);
+    } catch (err) {
+        if(err.response.data.Error){
+        return interaction.editReply(err.response.data.Error);
+        } else {
+        return interaction.editReply("An error occured");
+        }
+    }
     if (!key) {
         // only return events that are currently running
         const currentDay = dayjs();
@@ -64,6 +73,9 @@ module.exports = {
     } else {
         // get the event with the given key
         let event = res.data.find(event => event.key == key);
+        if (!event) {
+            return interaction.editReply("No event found with that key");
+        }
         msg = streamLink(event);
 
         interaction.editReply(msg);

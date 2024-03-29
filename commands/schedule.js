@@ -33,13 +33,22 @@ module.exports = {
                 'X-TBA-Auth-Key': process.env.TBA
             }
         };
-        const res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/matches/${dayjs().year()}`, config);
 
+        let res;
+        try{
+            res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/matches/${dayjs().year()}`, config);
+        } catch (err) {
+            if(err.response.data.Error){
+            return interaction.editReply(err.response.data.Error.substring(3));
+            } else {
+            return interaction.editReply("An error occured");
+            }
+        }
         let timeSorted = res.data.sort((a, b) => {
             return a.predicted_time - b.predicted_time;
         });
 
-        let upcomingMatches = timeSorted.filter(match => match.actual_time == null);
+        let upcomingMatches = timeSorted//.filter(match => match.actual_time == null);
 
         const embed = new EmbedBuilder()
             .setTitle(`__Upcoming Matches for Team ${team}__`)

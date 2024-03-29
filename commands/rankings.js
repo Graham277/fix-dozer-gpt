@@ -13,7 +13,6 @@ module.exports = {
         .addStringOption((option) =>
             option.setName('event-key')
                 .setDescription('Event key (eg. 2023oncmp) defaults to closest 2200 match')
-                .setRequired(true)
         )
         .addBooleanOption((option) =>
             option.setName('mobile')
@@ -54,9 +53,18 @@ module.exports = {
 
         let index = parseInt(interaction.options.getString("sort-by")) || 0;
         (index > prettyMetric.length) ? index = 0 : index;
-        let key = interaction.options.getString("event-key");
+        let key = interaction.options.getString("event-key") || (await recentEvent(2200)).key;
 
-        const res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${key}/rankings`, config);
+        let res;
+        try{
+            res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${key}/rankings`, config);
+        } catch (err) {
+            if(err.response.data.Error){
+                return interaction.editReply(err.response.data.Error);
+            } else {
+                return interaction.editReply("An error occured");
+            }
+        }
 
         let mobileVersion = interaction.options.getBoolean("mobile") || false;
         let embed;
@@ -140,5 +148,27 @@ module.exports = {
                     return rank;
             }
         }
+
+        async function recentEvent(team) {
+            const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
+            const currentDate = dayjs();
+            
+            const startedEvents = response.data.filter(event =>
+                dayjs(event.start_date).diff(currentDate, 'milliseconds') <= 0
+            );
+        
+            if (startedEvents.length === 0) {
+                console.log("No events have started for team", team);
+                return null;
+            }
+        
+            const closestEvent = startedEvents.reduce((closest, event) =>
+                dayjs(event.start_date).diff(currentDate, 'milliseconds') < closest.difference
+                    ? { key: event.key, difference: dayjs(event.start_date).diff(currentDate, 'milliseconds') }
+                    : closest, { difference: Infinity });
+        
+            // console.log("Closest event key to current date:", closestEvent.key);
+            return closestEvent;
+          }
     },
 };

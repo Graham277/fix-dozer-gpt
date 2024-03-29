@@ -26,12 +26,23 @@ module.exports = {
         'X-TBA-Auth-Key': process.env.TBA
       }
     };
-    const blueres = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}`, config);
-    const socials = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/social_media`, config);
-    const awards = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/awards`, config);
-    const media = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/media/${dayjs().year()}`, config);
+    let blueres;
+    let socials;
+    let awards;
+    let media;
+    try {
+      blueres = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}`, config);
+      socials = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/social_media`, config);
+      awards = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/awards`, config);
+      media = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${teamNumber}/media/${dayjs().year()}`, config);
     // const statsres = await axios.get(`https://api.statbotics.io/v2/team_year/${args[1]}/2023`);
-
+    } catch (err) {
+      if(err.response.data.Error){
+      return interaction.editReply(err.response.data.Error.substring(3));
+      } else {
+      return interaction.editReply("An error occured");
+      }
+    }
     if(media.data[0]?.details?.base64Image == undefined){
       const image = await Jimp.read('images/purp.png');
       image.resize(16 * 25, 9 * 25);
@@ -116,14 +127,18 @@ module.exports = {
       teamEmbed.setURL(blueres.data.website.replace("///","//"))
     }
 
-    const row = new ActionRowBuilder()
-      .addComponents(componentArr);
-    if(moreComponentArr.length > 0){
-      const row2 = new ActionRowBuilder()
-      .addComponents(moreComponentArr);
-      interaction.editReply({ embeds: [teamEmbed], files: [file], components: [row, row2]});
-    } else {
-      interaction.editReply({ embeds: [teamEmbed], files: [file], components: [row]});
+    if (componentArr.length != 0) {
+      const row = new ActionRowBuilder()
+        .addComponents(componentArr);
+      if(moreComponentArr.length > 0){
+        const row2 = new ActionRowBuilder()
+        .addComponents(moreComponentArr);
+        interaction.editReply({ embeds: [teamEmbed], files: [file], components: [row, row2]});
+      } else {
+        interaction.editReply({ embeds: [teamEmbed], files: [file], components: [row]});
+      }
+    } else{
+      interaction.editReply({ embeds: [teamEmbed], files: [file]});
     }
   },
 };

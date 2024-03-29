@@ -48,7 +48,7 @@ module.exports = {
 
     if(interaction.options.getBoolean("overall-scoring")){
       return interaction.editReply({
-        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRd3PjVAlosmxU1u5N223lgHfgukW5bLagD_Gkz-KiR793DlrelyzhnEATaPbiqDxNeQVLrS7PmVsOb/pubchart?oid=1047394600&format=image",
+        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQLsryvXRnRvxYWatkmQANtmzQAvLEr2LdLpGLiLFovp7iyC4izyuGbPiLNlu3ztcTG98hTa-3F9GBM/pubchart?oid=1047394600&format=image",
       });
     }
 
@@ -56,7 +56,16 @@ module.exports = {
     let sortBy = interaction.options.getString("sort-by") || "Sum_Total_Points";
 
     if (team != null) {
-      const res = await axios.get(`https://dozer-backend.vercel.app/team/${team}`);
+      let res;
+      try{
+        res = await axios.get(`https://dozer-backend.vercel.app/team/${team}`);
+      } catch (err) {
+          if(err.response.data){
+          return interaction.editReply(err.response.data);
+          } else {
+          return interaction.editReply("An error occured");
+          }
+      }
       let embed = {
         color: 0xF79A2A,
         title: `Scouting Data for Team ${team}`,
@@ -71,7 +80,7 @@ module.exports = {
         }
         k = k.split("_").join(" ");
         if(key === "Mobility"){
-          (val == 1) ? val = ":white_check_mark:" : val = ":x:";
+          (val == 2) ? val = ":white_check_mark:" : val = ":x:";
         }
         if(key === "Defensive_Effiecency"){
           k = "Defensive Efficiency";
@@ -87,12 +96,12 @@ module.exports = {
       });
 
     } else {
-      const res = await axios.get(`https://dozer-backend.vercel.app/top-teams?category=${sortBy}`);
+      const res = await axios.get(`https://dozer-backend.vercel.app/top-teams?category=${sortBy}&count=10`);
       // this is mobile version basically lolz
       let msg = '';
       // already limited by api to 5 teams (use ?count to override)
       res.data.forEach(team => {
-        msg += `**${team.team}** - ${team[sortBy]}\n`;
+        msg += `**${team.Team}** - ${team[sortBy]}\n`;
       });
       const embed = {
         color: 0xF79A2A,

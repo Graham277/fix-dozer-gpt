@@ -33,8 +33,19 @@ module.exports = {
           'X-TBA-Auth-Key': process.env.TBA
         }
     };
-    const res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${year}/simple`, config);
-      
+    let res;
+    try{
+      res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${year}/simple`, config);
+    } catch (err) {
+      if(err.response.data.Error){
+        if(err.response.data.Error == "Invalid endpoint"){
+          return interaction.editReply("Invalid year");
+        }
+        return interaction.editReply(err.response.data.Error.substring(3));
+      } else {
+        return interaction.editReply("An error occured");
+      }
+    }
     let msg = '';
     let dateSorted = res.data.sort((a, b) => {
         return new Date(a.start_date) - new Date(b.start_date);

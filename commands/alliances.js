@@ -25,8 +25,18 @@ module.exports = {
           'X-TBA-Auth-Key': process.env.TBA
         }
     };
-    const res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${eventKey}/alliances`, config);
-      
+    
+    let res;
+    try{
+      res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${eventKey}/alliances`, config);
+    } catch (err) {
+      if(err.response.data.Error){
+        return interaction.editReply(err.response.data.Error);
+      } else {
+        return interaction.editReply("An error occured");
+      }
+    }
+
     let embed = {
       color: 0xF79A2A,
       description: "",

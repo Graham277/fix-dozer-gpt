@@ -47,6 +47,7 @@ module.exports = {
   
 
   async execute(interaction) {
+    //co-operatition handshake later
     await interaction.deferReply();
 
     // console.log(interaction.options.getSubcommand());
@@ -62,7 +63,9 @@ module.exports = {
         return interaction.editReply("Team "+team+" has not been to any events yet!")
       }
     }
-    if (!match) {
+    if(match){
+      match = (await axios.get(`https://www.thebluealliance.com/api/v3/match/${event}_${match}`, config)).data;
+    } else {
       match = (await recentTeamMatch(team, event));
       
       if(!match){
@@ -71,25 +74,25 @@ module.exports = {
         match = match.match;
       }
     } 
+    console.log(match);
 
     let msg;
     // let content = "";
 
-    msg = `${match.alliances.red.team_keys.map(team => team.slice(3)).join(", ")} vs ${match.alliances.blue.team_keys.map(team => team.slice(3)).join(", ")}\n`;
-    if(match.winning_alliance == "red"){
-      msg += `**${match.alliances.red.score}** - ${match.alliances.blue.score}\n`;
-    } else {
-      msg += `${match.alliances.red.score} - **${match.alliances.blue.score}**\n`;
+    msg = "```ansi\n\u001b[2;31m\u001b[0m\u001b[1;2m\u001b[1;31m" + match.alliances.red.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[1;2m\u001b[0;2m\u001b[0;2m\u001b[1;2m vs\u001b[0m\u001b[0m\u001b[0m\u001b[0m \u001b[1;34m" + match.alliances.blue.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[0m\u001b[2;34m\u001b[0m\n```";
+    // if(match.winning_alliance == "red"){
+    //   msg += `**${match.alliances.red.score}** - ${match.alliances.blue.score}\n`;
+    // } else {
+    //   msg += `${match.alliances.red.score} - **${match.alliances.blue.score}**\n`;
+    // }
+    msg += `Red RP: ${match.score_breakdown.red.rp}\nBlue RP: ${match.score_breakdown.blue.rp}\n`;
+    if(match.score_breakdown.blue.autoAmpNoteCount > 0 || match.score_breakdown.red.autoAmpNoteCount > 0){
+      msg += `Auto Amp Notes 🤮 (R-B): ${match.score_breakdown.red.autoAmpNoteCount} - ${match.score_breakdown.blue.autoAmpNoteCount}\n`;
     }
     
     
     console.log(team, event, match);
-    let embed = {
-      color: 0xF79A2A,
-      description: msg,
-      title: `__${prettyCompLevel(match.comp_level)} ${(match.comp_level == "qm") ? `` : `${match.set_number}-`}${match.match_number}__\n`,
-      timestamp: dayjs.unix(match.actual_time).toISOString(),
-    }
+    
 
     function prettyCompLevel(level) {
       switch(level){
@@ -107,21 +110,94 @@ module.exports = {
     }
 
     const canvas = Canvas.createCanvas(1920, 965);
-		const context = canvas.getContext('2d');
-    const background = await Canvas.loadImage('images/redblue.png');
+    const ctx = canvas.getContext('2d');
+    let background;
+    if(match.winning_alliance == "red"){
+      background = await Canvas.loadImage('images/red.png');
+    } else if (match.winning_alliance == "blue"){
+      background = await Canvas.loadImage('images/blue.png');
+    } else {
+      background = await Canvas.loadImage('images/redblue.png');
+    }
+
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ffffff';
+
+    // Drawing text on the canvas
+    ctx.fillStyle = '#ffffff';
+
+    renderCenteredText(`${prettyCompLevel(match.comp_level)} ${(match.comp_level == "qm") ? `` : `${match.set_number}-`}${match.match_number}`, 60, (canvas.width - (ctx.measureText('Quals 7-7').width/2) )/2, 25, canvas.width * 0.8, canvas.height * 0.5);
     
-    context.drawImage(background, 0, 0, canvas.width, canvas.height);
+    // Scores red blue
+    renderCenteredText(match.alliances.red.score.toString(), 250, 775, 170, 400, 100);
+    renderCenteredText(match.alliances.blue.score.toString(), 250, 1140, 170, 400, 100);
+  
+    ctx.fillStyle = '#000000';
+    // titles
+    renderCenteredText('Auto', 60, canvas.width/2, 330, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Teleop', 60, canvas.width/2, 550, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Stage', 60, canvas.width/2, 845, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Penalty', 60, canvas.width/2, 920, canvas.width * 0.8, canvas.height * 0.5);
+    // values
+    renderCenteredText(match.score_breakdown.red.autoPoints.toString(), 60, canvas.width/2-300, 330, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.teleopPoints.toString(), 60, canvas.width/2-300, 550, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.endGameTotalStagePoints.toString(), 60, canvas.width/2-300, 845, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.foulPoints.toString(), 60, canvas.width/2-300, 920, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.autoPoints.toString(), 60, canvas.width/2+300, 330, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.teleopPoints.toString(), 60, canvas.width/2+300, 550, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.endGameTotalStagePoints.toString(), 60, canvas.width/2+300, 845, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.foulPoints.toString(), 60, canvas.width/2+300, 920, canvas.width * 0.8, canvas.height * 0.5);
+  
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
 
-    context.strokeRect(0, 0, canvas.width, canvas.height);
+    // titles
+    renderCenteredText('Speaker', 40, canvas.width/2, 405, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Leave', 40, canvas.width/2, 480, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Speaker', 40, canvas.width/2, 630, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Amp', 40, canvas.width/2, 705, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText('Amplified Speaker', 40, canvas.width/2, 780, canvas.width * 0.8, canvas.height * 0.5);
+    // values
+    renderCenteredText(match.score_breakdown.red.autoSpeakerNotePoints.toString(), 40, canvas.width/2-300, 405, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.autoLeavePoints.toString(), 40, canvas.width/2-300, 480, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.teleopSpeakerNotePoints.toString(), 40, canvas.width/2-300, 630, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.teleopAmpNotePoints.toString(), 40, canvas.width/2-300, 705, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.teleopSpeakerNoteAmplifiedPoints.toString(), 40, canvas.width/2-300, 780, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.autoSpeakerNotePoints.toString(), 40, canvas.width/2+300, 405, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.autoLeavePoints.toString(), 40, canvas.width/2+300, 480, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.teleopSpeakerNotePoints.toString(), 40, canvas.width/2+300, 630, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.teleopAmpNotePoints.toString(), 40, canvas.width/2+300, 705, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.teleopSpeakerNoteAmplifiedPoints.toString(), 40, canvas.width/2+300, 780, canvas.width * 0.8, canvas.height * 0.5);
 
-    context.font = '60px sans-serif';
-    context.fillStyle = '#ffffff';
+    // Function to render text with centering and bounding
+    function renderCenteredText(text, fontSize, x, y, maxWidth, maxHeight) {
+        let currentFontSize = fontSize;
+        let textWidth, textHeight;
+        do {
+            ctx.font = `${currentFontSize}px sans-serif`;
+            textWidth = ctx.measureText(text).width;
+            textHeight = currentFontSize;
+            currentFontSize--;
+        } while ((textWidth > maxWidth || textHeight > maxHeight) && currentFontSize > 0);
 
-    context.fillText(`test`, canvas.width / 2.5, canvas.height /17);
+        const newX = x - textWidth / 2;
+        const newY = y + textHeight / 2;
+
+        ctx.fillText(text, newX, newY);
+    }
 
     const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'match.png' });
+    let embed = {
+      color: 0xF79A2A,
+      description: msg,
+      // title: `__${prettyCompLevel(match.comp_level)} ${(match.comp_level == "qm") ? `` : `${match.set_number}-`}${match.match_number}__\n`,
+      timestamp: dayjs.unix(match.actual_time).toISOString(),
+      image: {
+        url: `attachment://match.png`
+      }
 
-    interaction.editReply({ files: [attachment] });
+    }
+    await interaction.editReply({ embeds: [embed], files: [attachment] });
 
     // interaction.editReply({embeds: [embed]});
     if(match.videos.length > 0){
