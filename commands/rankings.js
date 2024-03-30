@@ -1,9 +1,10 @@
 // FIX NUMBER OPTION ?
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
 const { time } = require('discord.js');
 const { table } = require('table');
+const Canvas = require('@napi-rs/canvas');
 
 // make it default to closest 2200 event
 module.exports = {
@@ -54,7 +55,9 @@ module.exports = {
         let index = parseInt(interaction.options.getString("sort-by")) || 0;
         (index > prettyMetric.length) ? index = 0 : index;
         let key = interaction.options.getString("event-key") || (await recentEvent(2200)).key;
-
+        if (key == null) {
+            return interaction.editReply("No events have started for team 2200");
+        }
         let res;
         try{
             res = await axios.get(`https://www.thebluealliance.com/api/v3/event/${key}/rankings`, config);
@@ -69,7 +72,7 @@ module.exports = {
         let mobileVersion = interaction.options.getBoolean("mobile") || false;
         let embed;
 
-        console.log(res.data.rankings)
+        // console.log(res.data.rankings)
 
         if (mobileVersion) {
             let msg = '*Rank - Team - '+prettyMetric[index]+'*\n';
@@ -85,7 +88,7 @@ module.exports = {
             let data = [
                 ['Rank', 'Team', prettyMetric[index], 'W-L-T', 'Played']
             ];
-
+            
             const tableConfig = {
                 columns: [
                     { alignment: 'center' },
@@ -99,23 +102,106 @@ module.exports = {
                     content: 'Rankings for ' + key + ' by ' + prettyMetric[index],
                 },
             };
-
+            
             let special;
             let team;
             let sorted = res.data.rankings.sort((a, b) => {
                 return b.sort_orders[index] - a.sort_orders[index];
             });
-        
-            for(let i = 0; i < ((sorted.length > 15) ? 15 : sorted.length); i++) {
-                
+            
+            for (let i = 0; i < ((sorted.length > 15) ? 15 : sorted.length); i++) {
                 team = sorted[i];
-                special = team.sort_orders[index]
-                
+                special = team.sort_orders[index];
                 data.push([team.rank, team.team_key.substring(3), special, Object.values(team.record).join("-"), team.matches_played]);
-            };
+            }
+            
+            // Create a canvas element
+            const canvas = Canvas.createCanvas(500, 300);
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 500; // Set your desired width
+            canvas.height = 300; // Set your desired height
+            ctx.fillStyle = "#F79A2A";
+ctx.        fillRect(0, 0, canvas.width, canvas.height);
+            // Draw the table
+            drawTable(ctx, data, tableConfig);
+            
+            // Convert canvas content to image
+            const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'rankings.png' });
+
+            
+            // Embed the image in your document or webpage
             embed = new EmbedBuilder()
                 .setColor("#F79A2A")
-                .setDescription("```" + table(data, tableConfig) + "```")
+                .setImage('attachment://rankings.png')
+            return interaction.editReply({
+                embeds: [embed],
+                files: [attachment]
+            });
+            
+            // Function to draw the table on canvas
+            function drawTable(ctx, data, config) {
+                const cellPadding = 5;
+                const cellWidth = canvas.width / data[0].length;
+                const cellHeight = 20; // Adjust as needed
+                const tableWidth = cellWidth * data[0].length;
+                const tableHeight = cellHeight * data.length;
+            
+                // Draw header
+                ctx.fillStyle = '#000'; // Header text color
+                ctx.font = 'bold 14px Arial'; // Header font
+                ctx.textAlign = config.header.alignment;
+                ctx.fillText(config.header.content, tableWidth / 2, cellHeight);
+            
+                // Draw table content
+                for (let i = 0; i < data.length; i++) {
+                    for (let j = 0; j < data[i].length; j++) {
+                        const cellContent = data[i][j].toString();
+                        const x = j * cellWidth+35;
+                        const y = (i + 1) * cellHeight;
+                        ctx.fillStyle = '#000'; // Cell text color
+                        ctx.font = '12px Arial'; // Cell font
+                        ctx.textAlign = config.columns[j].alignment;
+                        ctx.fillText(cellContent, x + cellPadding, y + cellHeight - cellPadding);
+                    }
+                }
+            }
+            
+            // let data = [
+            //     ['Rank', 'Team', prettyMetric[index], 'W-L-T', 'Played']
+            // ];
+
+            // const tableConfig = {
+            //     columns: [
+            //         { alignment: 'center' },
+            //         { alignment: 'center' },
+            //         { alignment: 'center' },
+            //         { alignment: 'left' },
+            //         { alignment: 'center' },
+            //     ],
+            //     header: {
+            //         alignment: 'center',
+            //         content: 'Rankings for ' + key + ' by ' + prettyMetric[index],
+            //     },
+            // };
+
+            // let special;
+            // let team;
+            // let sorted = res.data.rankings.sort((a, b) => {
+            //     return b.sort_orders[index] - a.sort_orders[index];
+            // });
+        
+            // for(let i = 0; i < ((sorted.length > 15) ? 15 : sorted.length); i++) {
+                
+            //     team = sorted[i];
+            //     special = team.sort_orders[index]
+                
+            //     data.push([team.rank, team.team_key.substring(3), special, Object.values(team.record).join("-"), team.matches_played]);
+            // };
+            // embed = new EmbedBuilder()
+            //     .setColor("#F79A2A")
+            //     .setDescription("```" + table(data, tableConfig) + "```")
         }
 
         interaction.editReply({
@@ -151,6 +237,7 @@ module.exports = {
 
         async function recentEvent(team) {
             const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
+      
             const currentDate = dayjs();
             
             const startedEvents = response.data.filter(event =>
@@ -158,17 +245,13 @@ module.exports = {
             );
         
             if (startedEvents.length === 0) {
-                console.log("No events have started for team", team);
+                // console.log("No events have started for team", team);
                 return null;
             }
-        
-            const closestEvent = startedEvents.reduce((closest, event) =>
-                dayjs(event.start_date).diff(currentDate, 'milliseconds') < closest.difference
-                    ? { key: event.key, difference: dayjs(event.start_date).diff(currentDate, 'milliseconds') }
-                    : closest, { difference: Infinity });
-        
-            // console.log("Closest event key to current date:", closestEvent.key);
-            return closestEvent;
+      
+            startedEvents.sort((a, b) => Math.abs(dayjs(a.start_date).diff(currentDate)) - Math.abs(dayjs(b.start_date).diff(currentDate)));
+            // console.log("Started events for team", team, ":", startedEvents);
+            return startedEvents[0];
           }
     },
 };

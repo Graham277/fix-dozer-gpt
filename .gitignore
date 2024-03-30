@@ -1,6 +1,8 @@
 .env
 node_modules
-images
+images/team.png
+images/calendar.png
+images/image_date.txt
 .replit
 package-lock.json
 rippkgs-index.sqlite

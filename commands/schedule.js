@@ -48,7 +48,7 @@ module.exports = {
             return a.predicted_time - b.predicted_time;
         });
 
-        let upcomingMatches = timeSorted//.filter(match => match.actual_time == null);
+        let upcomingMatches = timeSorted.filter(match => match.actual_time == null);
 
         const embed = new EmbedBuilder()
             .setTitle(`__Upcoming Matches for Team ${team}__`)
@@ -69,7 +69,7 @@ module.exports = {
             let prefix = convert[upcomingMatches[i].comp_level];
 
             embed.addFields({
-                name: `${prefix} (<t:${upcomingMatches[i].predicted_time}:R>)`,
+                name: `${prefix} ${upcomingMatches[i].set_number}-${upcomingMatches[i].match_number} <t:${upcomingMatches[i].predicted_time}:R> (<t:${upcomingMatches[i].predicted_time}>)`,
                 value: "```ansi\n\u001b[2;31m\u001b[0m\u001b[1;2m\u001b[1;31m" + upcomingMatches[i].alliances.blue.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[1;2m\u001b[0;2m\u001b[0;2m\u001b[1;2m vs\u001b[0m\u001b[0m\u001b[0m\u001b[0m \u001b[1;34m" + upcomingMatches[i].alliances.red.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[0m\u001b[2;34m\u001b[0m\n```"
             });
         }

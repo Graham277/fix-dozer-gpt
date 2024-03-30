@@ -2,7 +2,13 @@ const { SlashCommandBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
 const { time } = require('discord.js');
-
+let config = {
+  method: 'get',
+  maxBodyLength: Infinity,
+  headers: { 
+    'X-TBA-Auth-Key': process.env.TBA
+  }
+};
 module.exports = {
   data: new SlashCommandBuilder()
   .setName("alliances")
@@ -16,15 +22,11 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply();
 
-    let eventKey = interaction.options.getString("event-key") || "2024ausc";
-
-    let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        headers: { 
-          'X-TBA-Auth-Key': process.env.TBA
-        }
-    };
+    let eventKey = interaction.options.getString("event-key") || (await recentEvent(2200)).key;
+    if(eventKey == null){
+      return interaction.editReply("No events have started for team 2200");
+    }
+    
     
     let res;
     try{
@@ -43,7 +45,9 @@ module.exports = {
       title: `Alliances at ${eventKey}`,
       fields: [],
     };
-
+    if (res.data.length === 0) {
+      return interaction.editReply("Alliance selection has not happened yet");
+    }
     res.data.forEach((alliance) => {
         let allianceStatus = "";
         switch(alliance.status.status){
@@ -67,5 +71,24 @@ module.exports = {
     interaction.editReply({
         embeds: [embed],
     })
+
+    async function recentEvent(team) {
+      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
+
+      const currentDate = dayjs();
+      
+      const startedEvents = response.data.filter(event =>
+          dayjs(event.start_date).diff(currentDate, 'milliseconds') <= 0
+      );
+  
+      if (startedEvents.length === 0) {
+          //console.log("No events have started for team", team);
+          return null;
+      }
+
+      startedEvents.sort((a, b) => Math.abs(dayjs(a.start_date).diff(currentDate)) - Math.abs(dayjs(b.start_date).diff(currentDate)));
+      // console.log("Started events for team", team, ":", startedEvents);
+      return startedEvents[0];
+    }
   },
 };

@@ -48,7 +48,7 @@ module.exports = {
 
     if(interaction.options.getBoolean("overall-scoring")){
       return interaction.editReply({
-        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQLsryvXRnRvxYWatkmQANtmzQAvLEr2LdLpGLiLFovp7iyC4izyuGbPiLNlu3ztcTG98hTa-3F9GBM/pubchart?oid=1047394600&format=image",
+        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQLsryvXRnRvxYWatkmQANtmzQAvLEr2LdLpGLiLFovp7iyC4izyuGbPiLNlu3ztcTG98hTa-3F9GBM/pubchart?oid=1047394600&format=image&rand="+Math.random(),
       });
     }
 

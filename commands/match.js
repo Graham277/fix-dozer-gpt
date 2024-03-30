@@ -74,7 +74,7 @@ module.exports = {
         match = match.match;
       }
     } 
-    console.log(match);
+    // console.log(match);
 
     let msg;
     // let content = "";
@@ -85,13 +85,13 @@ module.exports = {
     // } else {
     //   msg += `${match.alliances.red.score} - **${match.alliances.blue.score}**\n`;
     // }
-    msg += `Red RP: ${match.score_breakdown.red.rp}\nBlue RP: ${match.score_breakdown.blue.rp}\n`;
+    // msg += `Red RP: ${match.score_breakdown.red.rp}\nBlue RP: ${match.score_breakdown.blue.rp}\n`;
     if(match.score_breakdown.blue.autoAmpNoteCount > 0 || match.score_breakdown.red.autoAmpNoteCount > 0){
-      msg += `Auto Amp Notes 🤮 (R-B): ${match.score_breakdown.red.autoAmpNoteCount} - ${match.score_breakdown.blue.autoAmpNoteCount}\n`;
+      msg += `Auto Amp Note Points 🤮 (R-B): ${match.score_breakdown.red.autoAmpNotePoints} - ${match.score_breakdown.blue.autoAmpNotePoints}\n`;
     }
     
     
-    console.log(team, event, match);
+    // console.log(team, event, match);
     
 
     function prettyCompLevel(level) {
@@ -124,6 +124,65 @@ module.exports = {
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#ffffff';
 
+    // rp
+    let redImages = [];
+    let redCount = 0;
+
+    if (match.score_breakdown.red.melodyBonusAchieved) {
+        redImages.push('images/redmelody.png');
+        redCount++;
+    }
+
+    if (match.score_breakdown.red.ensembleBonusAchieved) {
+        redImages.push('images/redensemble.png');
+        redCount++;
+    }
+
+    for (let i = 0; i < match.score_breakdown.red.rp - redCount; i++) {
+        redImages.push('images/redtrophy.png');
+    }
+
+    let blueImages = [];
+    let blueCount = 0;
+
+    if (match.score_breakdown.blue.melodyBonusAchieved) {
+        blueImages.push('images/bluemelody.png'); 
+        blueCount++;
+    }
+
+    if (match.score_breakdown.blue.ensembleBonusAchieved) {
+        blueImages.push('images/blueensemble.png'); 
+        blueCount++;
+    }
+
+    for (let i = 0; i < match.score_breakdown.blue.rp - blueCount; i++) {
+        blueImages.push('images/bluetrophy.png');
+    }
+
+    for(let i = 0; i < blueImages.length; i++){
+        blueImages[i] = await loadImage(blueImages[i]);
+    }
+    for(let i = 0; i < redImages.length; i++){
+        redImages[i] = await loadImage(redImages[i]);
+    }
+    if (redImages.length > 0) renderImages(redImages, 295, 700);
+    if (blueImages.length > 0) renderImages(blueImages, canvas.width-295, 700);
+
+    async function loadImage(src) {
+        return await Canvas.loadImage(src);
+    }
+
+    function renderImages(images, x, y) {
+        const imageSize = 125; // Adjust size as needed
+        const spacing = 10; // Adjust spacing between images as needed
+        let currentX = x - ((images.length * (imageSize + spacing)) / 2);
+
+        images.forEach(image => {
+            ctx.drawImage(image, currentX, y, imageSize, imageSize);
+            currentX += imageSize + spacing;
+        });
+    }
+
     // Drawing text on the canvas
     ctx.fillStyle = '#ffffff';
 
@@ -141,14 +200,14 @@ module.exports = {
     renderCenteredText('Penalty', 60, canvas.width/2, 920, canvas.width * 0.8, canvas.height * 0.5);
     // values
     renderCenteredText(match.score_breakdown.red.autoPoints.toString(), 60, canvas.width/2-300, 330, canvas.width * 0.8, canvas.height * 0.5);
-    renderCenteredText(match.score_breakdown.red.teleopPoints.toString(), 60, canvas.width/2-300, 550, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.red.teleopTotalNotePoints.toString(), 60, canvas.width/2-300, 550, canvas.width * 0.8, canvas.height * 0.5);
     renderCenteredText(match.score_breakdown.red.endGameTotalStagePoints.toString(), 60, canvas.width/2-300, 845, canvas.width * 0.8, canvas.height * 0.5);
     renderCenteredText(match.score_breakdown.red.foulPoints.toString(), 60, canvas.width/2-300, 920, canvas.width * 0.8, canvas.height * 0.5);
     renderCenteredText(match.score_breakdown.blue.autoPoints.toString(), 60, canvas.width/2+300, 330, canvas.width * 0.8, canvas.height * 0.5);
-    renderCenteredText(match.score_breakdown.blue.teleopPoints.toString(), 60, canvas.width/2+300, 550, canvas.width * 0.8, canvas.height * 0.5);
+    renderCenteredText(match.score_breakdown.blue.teleopTotalNotePoints.toString(), 60, canvas.width/2+300, 550, canvas.width * 0.8, canvas.height * 0.5);
     renderCenteredText(match.score_breakdown.blue.endGameTotalStagePoints.toString(), 60, canvas.width/2+300, 845, canvas.width * 0.8, canvas.height * 0.5);
     renderCenteredText(match.score_breakdown.blue.foulPoints.toString(), 60, canvas.width/2+300, 920, canvas.width * 0.8, canvas.height * 0.5);
-  
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
 
     // titles
@@ -204,15 +263,11 @@ module.exports = {
       // fix later for other video sites
       interaction.followUp(`https://www.youtube.com/watch?v=${match.videos[0].key}`)
     }
-    
-
-    // interaction.editReply({
-    //     embeds: [embed],
-    // })
 
     // ensure event has started, don't return future events
     async function recentEvent(team) {
       const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
+
       const currentDate = dayjs();
       
       const startedEvents = response.data.filter(event =>
@@ -220,17 +275,13 @@ module.exports = {
       );
   
       if (startedEvents.length === 0) {
-          console.log("No events have started for team", team);
+          // console.log("No events have started for team", team);
           return null;
       }
-  
-      const closestEvent = startedEvents.reduce((closest, event) =>
-          dayjs(event.start_date).diff(currentDate, 'milliseconds') < closest.difference
-              ? { key: event.key, difference: dayjs(event.start_date).diff(currentDate, 'milliseconds') }
-              : closest, { difference: Infinity });
-  
-      // console.log("Closest event key to current date:", closestEvent.key);
-      return closestEvent;
+
+      startedEvents.sort((a, b) => Math.abs(dayjs(a.start_date).diff(currentDate)) - Math.abs(dayjs(b.start_date).diff(currentDate)));
+      // console.log("Started events for team", team, ":", startedEvents);
+      return startedEvents[0];
     }
   
     // only matches that have an actual time, meaning they've finished
