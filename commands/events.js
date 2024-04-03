@@ -7,7 +7,7 @@ const { time } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-  .setName("upcoming")
+  .setName("events")
   .setDescription("Gets the upcoming and past events for a team")
   .addStringOption((option) =>
     option.setName('team')
@@ -61,7 +61,7 @@ module.exports = {
     const embed = {
       color: 0xF79A2A,
       description: msg,
-      title: `Upcoming Events for Team ${team} ${yearStr}`,
+      title: `Season Events for Team ${team} ${yearStr}`,
     };
     
     

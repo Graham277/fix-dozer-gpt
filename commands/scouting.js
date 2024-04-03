@@ -28,7 +28,7 @@ module.exports = {
           { name: 'Trap', value: "Trap" },
           { name: 'Park', value: "Park" },
           { name: 'Times Defence Played', value: "Defense_Played" },
-          { name: 'Defensive Efficiency', value: "Defensive_Effiecency" },
+          { name: 'Driver Skill', value: "Driver_Skill" },
           { name: 'Teleop Cycles', value: "Teleop_Cycles" },
           { name: 'Times Died', value: "Died" },
           { name: 'Sum Auto Points', value: "Sum_Auto_Points" },
@@ -80,7 +80,11 @@ module.exports = {
         }
         k = k.split("_").join(" ");
         if(key === "Mobility"){
-          (val == 2) ? val = ":white_check_mark:" : val = ":x:";
+          if(val == 0){
+            val = ":x:"
+          } else if (val == 2){
+            val = ":white_check_mark:"
+          } // else keep it as the number
         }
         if(key === "Defensive_Effiecency"){
           k = "Defensive Efficiency";

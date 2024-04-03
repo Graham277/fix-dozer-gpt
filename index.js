@@ -4,13 +4,15 @@ const dotenv = require("dotenv");
 const axios = require("axios");
 
 dotenv.config();
-const { Client, Collection, Events, GatewayIntentBits } = require("discord.js");
+const { Client, Collection, Events, GatewayIntentBits, ActivityType} = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildMessageReactions,
     // GatewayIntentBits.GuildMembers,
   ],
 });
@@ -36,10 +38,22 @@ for (const file of commandFiles) {
 // When the client is ready, run this code (only once)
 client.once(Events.ClientReady, (c) => {
   console.log(`*hacker voice* I'm in! Codename: ${c.user.tag}`);
+  client.user.setPresence({ 
+    activities: [{ 
+        name: 'Beating 2056 in Endgame', 
+        type: ActivityType.Custom, 
+    }], 
+    status: 'online' 
 });
+});
+
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
+  // dont allow outside dozer-commands in 2200 server
+  if(interaction.guildId == "949124190638833674" && interaction.channelId != "1225188892748157049"){
+    return interaction.reply({content: "You can't send messages outside of <#1225188892748157049>", ephemeral: true})
+  }
   const command = interaction.client.commands.get(interaction.commandName);
 
   if (!command) {

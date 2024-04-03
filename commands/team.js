@@ -38,7 +38,7 @@ module.exports = {
     // const statsres = await axios.get(`https://api.statbotics.io/v2/team_year/${args[1]}/2023`);
     } catch (err) {
       if(err.response.data.Error){
-      return interaction.editReply(err.response.data.Error.substring(3));
+      return interaction.editReply(err.response.data.Error);
       } else {
       return interaction.editReply("An error occured");
       }
