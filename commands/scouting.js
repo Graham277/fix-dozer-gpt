@@ -78,6 +78,7 @@ module.exports = {
         if (key === "Team") {
           return;
         }
+        
         k = k.split("_").join(" ");
         if(key === "Mobility"){
           if(val == 0){
@@ -110,7 +111,7 @@ module.exports = {
       const embed = {
         color: 0xF79A2A,
         description: msg,
-        title: `Top Teams in ${sortBy}`,
+        title: `Top Teams in ${sortBy.split("_").join(" ")}`,
       };
 
       interaction.editReply({

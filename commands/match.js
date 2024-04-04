@@ -65,6 +65,7 @@ module.exports = {
     }
     if(match){
       match = (await axios.get(`https://www.thebluealliance.com/api/v3/match/${event}_${match}`, config)).data;
+      
     } else {
       match = (await recentTeamMatch(team, event));
       
@@ -74,25 +75,12 @@ module.exports = {
         match = match.match;
       }
     } 
-    // console.log(match);
 
     let msg;
-    // let content = "";
-
     msg = "```ansi\n\u001b[2;31m\u001b[0m\u001b[1;2m\u001b[1;31m" + match.alliances.red.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[1;2m\u001b[0;2m\u001b[0;2m\u001b[1;2m vs\u001b[0m\u001b[0m\u001b[0m\u001b[0m \u001b[1;34m" + match.alliances.blue.team_keys.map(team => team.slice(3)).join(" ") + "\u001b[0m\u001b[0m\u001b[2;34m\u001b[0m\n```";
-    // if(match.winning_alliance == "red"){
-    //   msg += `**${match.alliances.red.score}** - ${match.alliances.blue.score}\n`;
-    // } else {
-    //   msg += `${match.alliances.red.score} - **${match.alliances.blue.score}**\n`;
-    // }
-    // msg += `Red RP: ${match.score_breakdown.red.rp}\nBlue RP: ${match.score_breakdown.blue.rp}\n`;
     if(match.score_breakdown.blue.autoAmpNoteCount > 0 || match.score_breakdown.red.autoAmpNoteCount > 0){
       msg += `Auto Amp Note Points 🤮 (R-B): ${match.score_breakdown.red.autoAmpNotePoints} - ${match.score_breakdown.blue.autoAmpNotePoints}\n`;
     }
-    
-    
-    // console.log(team, event, match);
-    
 
     function prettyCompLevel(level) {
       switch(level){

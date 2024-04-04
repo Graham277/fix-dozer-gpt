@@ -103,6 +103,9 @@ module.exports = {
                 .setColor("#F79A2A")
                 .setTitle("EPA Rankings for "+regionRaw+" "+dayjs().year())
                 .setDescription("```" + msg + "```")
+                interaction.editReply({
+                    embeds: [embed]
+                })
         
         } else {
             let data = [
@@ -161,10 +164,11 @@ module.exports = {
                 .setColor("#F79A2A")
                 .setDescription("```" + table(data, tableConfig) + "```")
                 .setFooter({text: "*World Rank"})
+                interaction.editReply({
+                    embeds: [embed]
+                })
         }
 
-        interaction.editReply({
-            embeds: [embed]
-        })
+        
     },
 };
