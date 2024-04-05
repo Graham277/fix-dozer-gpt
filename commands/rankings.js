@@ -112,7 +112,8 @@ module.exports = {
             for (let i = 0; i < ((sorted.length > 15) ? 15 : sorted.length); i++) {
                 team = sorted[i];
                 special = team.sort_orders[index];
-                data.push([team.rank, team.team_key.substring(3), special, Object.values(team.record).join("-"), team.matches_played]);
+
+                data.push([team.rank, team.team_key.substring(3), special, team.record.wins + "-" + team.record.losses + "-" + team.record.ties, team.matches_played]);
             }
             
             // Create a canvas element

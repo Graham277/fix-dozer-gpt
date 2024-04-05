@@ -115,7 +115,7 @@ module.exports = {
     });
 
     const teamEmbed = new EmbedBuilder()
-      .setTitle(blueres.data.nickname)
+      .setTitle(blueres.data.nickname+" ("+blueres.data.team_number+")")
       .setDescription(`from ${blueres.data.city}, ${blueres.data.state_prov}, ${blueres.data.country}`)
       .setThumbnail('attachment://team.png')
       .setColor("#F79A2A")
