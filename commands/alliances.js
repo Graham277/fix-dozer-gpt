@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
-const { time } = require('discord.js');
+
 let config = {
   method: 'get',
   maxBodyLength: Infinity,
@@ -61,7 +61,11 @@ module.exports = {
                 allianceStatus = "🟢";
                 break;
             default:
-                allianceStatus = `(${alliance.status.status})`;
+                if(!allianceStatus){
+                  allianceStatus = "";
+                } else {
+                  allianceStatus = `(${alliance.status.status})`;
+                }
                 console.log(allianceStatus);
         }
         embed.fields.push({ name: allianceStatus+" "+alliance.name, value: alliance.picks.map((alliance) => alliance.substring(3)).join(", ")+"\n", inline: true});
