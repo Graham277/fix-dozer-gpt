@@ -49,6 +49,7 @@ async function fetchFromGist(filename) {
   try {
     const response = await axios.get(gistUrl, { headers });
 
+    // Check if the file exists in the Gist
     if (response.data.files && response.data.files[filename]) {
       return response.data.files[filename].content;
     } else {
