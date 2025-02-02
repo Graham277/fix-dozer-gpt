@@ -48,6 +48,10 @@ module.exports = {
             return currentDay.isAfter(start) && currentDay.isBefore(end);
         });
 
+        if (running.length === 0) {
+            return interaction.editReply("There are no ongoing events at the moment.");
+        }
+
         let msg = '';
         running.forEach(event => {
             if (!event.webcasts[0]) {

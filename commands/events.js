@@ -3,8 +3,6 @@ const dayjs = require("dayjs");
 const axios = require("axios");
 const { time } = require('discord.js');
 
-
-
 module.exports = {
   data: new SlashCommandBuilder()
   .setName("events")

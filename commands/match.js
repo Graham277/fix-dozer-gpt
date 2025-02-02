@@ -3,6 +3,7 @@ const { SlashCommandBuilder, AttachmentBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
 const Canvas = require('@napi-rs/canvas');
+const { recentEvent } = require("./tools.js");
 
 let config = {
   method: 'get',
@@ -250,26 +251,6 @@ module.exports = {
     if(match.videos.length > 0){
       // fix later for other video sites
       interaction.followUp(`https://www.youtube.com/watch?v=${match.videos[0].key}`)
-    }
-
-    // ensure event has started, don't return future events
-    async function recentEvent(team) {
-      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
-
-      const currentDate = dayjs();
-      
-      const startedEvents = response.data.filter(event =>
-          dayjs(event.start_date).diff(currentDate, 'milliseconds') <= 0
-      );
-  
-      if (startedEvents.length === 0) {
-          // console.log("No events have started for team", team);
-          return null;
-      }
-
-      startedEvents.sort((a, b) => Math.abs(dayjs(a.start_date).diff(currentDate)) - Math.abs(dayjs(b.start_date).diff(currentDate)));
-      // console.log("Started events for team", team, ":", startedEvents);
-      return startedEvents[0];
     }
   
     // only matches that have an actual time, meaning they've finished

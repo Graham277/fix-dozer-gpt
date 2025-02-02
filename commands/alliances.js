@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const axios = require("axios");
+const { recentEvent } = require("./tools.js");
 
 let config = {
   method: 'get',
@@ -24,7 +25,7 @@ module.exports = {
 
     let eventKey = interaction.options.getString("event-key") || (await recentEvent(2200)).key;
     if(eventKey == null){
-      return interaction.editReply("No events have started for team 2200");
+      return interaction.editReply("No events have started this year for team 2200");
     }
     
     
@@ -75,24 +76,5 @@ module.exports = {
     interaction.editReply({
         embeds: [embed],
     })
-
-    async function recentEvent(team) {
-      const response = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${dayjs().year()}/simple`, config);
-
-      const currentDate = dayjs();
-      
-      const startedEvents = response.data.filter(event =>
-          dayjs(event.start_date).diff(currentDate, 'milliseconds') <= 0
-      );
-  
-      if (startedEvents.length === 0) {
-          //console.log("No events have started for team", team);
-          return null;
-      }
-
-      startedEvents.sort((a, b) => Math.abs(dayjs(a.start_date).diff(currentDate)) - Math.abs(dayjs(b.start_date).diff(currentDate)));
-      // console.log("Started events for team", team, ":", startedEvents);
-      return startedEvents[0];
-    }
   },
 };
