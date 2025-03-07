@@ -17,12 +17,11 @@ async function recentEvent(team) {
 
   const currentDate = dayjs();
 
-  const startedEvents = response.data
-    .map((event) => ({ ...event, key: null })) // Set .key to null for all events initially
-    .filter(
-      (event) =>
-        dayjs(event.start_date).diff(currentDate, "milliseconds") <= 0
-    );
+  const startedEvents = response.data.map((event) => ({ ...event }))
+  .filter(
+    (event) =>
+      dayjs(event.start_date).diff(currentDate, "milliseconds") <= 0
+  );
 
   if (startedEvents.length === 0) {
     console.log("No events have started for team", team);
@@ -34,6 +33,7 @@ async function recentEvent(team) {
       Math.abs(dayjs(a.start_date).diff(currentDate)) -
       Math.abs(dayjs(b.start_date).diff(currentDate))
   );
+  console.log(startedEvents[0])
 
   return startedEvents[0];
 }

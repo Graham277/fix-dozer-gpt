@@ -32,39 +32,46 @@ module.exports = {
         }
     };
     let res;
-    try{
+    try {
       res = await axios.get(`https://www.thebluealliance.com/api/v3/team/frc${team}/events/${year}/simple`, config);
     } catch (err) {
-      if(err.response.data.Error){
-        if(err.response.data.Error == "Invalid endpoint"){
+      if (err.response?.data?.Error) {
+        if (err.response.data.Error === "Invalid endpoint") {
           return interaction.editReply("Invalid year");
         }
         return interaction.editReply(err.response.data.Error.substring(3));
       } else {
-        return interaction.editReply("An error occured");
+        return interaction.editReply("An error occurred");
       }
     }
+
     let msg = '';
     let dateSorted = res.data.sort((a, b) => {
         return new Date(a.start_date) - new Date(b.start_date);
     });
+
     dateSorted.forEach(event => {
         let startDate = new Date(event.start_date);
         let endDate = new Date(event.end_date);
 
-        msg += "[**"+event.name+`**](<https://www.thebluealliance.com/event/${event.key}>) (${event.key})\n`+time(startDate)+"-"+time(endDate)+` (${time(startDate, 'R')})\n`+`${event.city}, ${event.state_prov}, ${event.country}\n\n`;
+        // Add 12 hours
+        startDate.setHours(startDate.getHours() + 12);
+        endDate.setHours(endDate.getHours() + 24);
+
+        msg += `[**${event.name}**](<https://www.thebluealliance.com/event/${event.key}>) (${event.key})\n` +
+               `${time(startDate)} - ${time(endDate)} (${time(startDate, 'R')})\n` +
+               `${event.city}, ${event.state_prov}, ${event.country}\n\n`;
     });
 
-    let yearStr = interaction.options.getString("year") ? year = "in "+interaction.options.getString("year") : "";
+    let yearStr = interaction.options.getString("year") ? `in ${interaction.options.getString("year")}` : "";
     const embed = {
       color: 0xF79A2A,
       description: msg,
       title: `Season Events for Team ${team} ${yearStr}`,
     };
     
-    
     interaction.editReply({
         embeds: [embed],
-    })
+    });
   },
 };
