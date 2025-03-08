@@ -18,17 +18,25 @@ module.exports = {
         .setDescription('Category to sort by (defaults to sum total points)')
         .setRequired(false)
         .addChoices(
-          { name: 'Mobility', value: "Mobility" },
-          { name: 'Speaker Auto', value: "Speaker_Auto" },
-          { name: 'Amp Auto', value: "Amp_Auto" },
-          { name: 'Speaker', value: "Speaker" },
-          { name: 'Amp', value: "Amp" },
-          { name: 'Amplified Speaker', value: "Amplified_Speaker_Scores" },
-          { name: 'Climb', value: "Climb" },
-          { name: 'Trap', value: "Trap" },
+          { name: 'Auto Lvl 1', value: "Auto_Lvl_1" },
+          { name: 'Auto Lvl 2', value: "Auto_Lvl_2" },
+          { name: 'Auto Lvl 3', value: "Auto_Lvl_3" },
+          { name: 'Auto Lvl 4', value: "Auto_Lvl_4" },
+          { name: 'Auto Processor', value: "Auto_Processor" },
+          { name: 'Auto Barge', value: "Auto_Barge" },
+          { name: 'Auto Algae Removed', value: "Auto_Algae_Removed" },
+          { name: 'Lvl 1', value: "Lvl_1" },
+          { name: 'Lvl 2', value: "Lvl_2" },
+          { name: 'Lvl 3', value: "Lvl_3" },
+          { name: 'Lvl 4', value: "Lvl_4" },
+          { name: 'Processor', value: "Processor" },
+          { name: 'Barge', value: "Barge" },
+          { name: 'Algae Removed', value: "Algae_Removed" },
+          { name: 'Deep Cage', value: "Deep_Cage" },
+          { name: 'Shallow Cage', value: "Shallow_Cage" },
           { name: 'Park', value: "Park" },
           { name: 'Times Defence Played', value: "Defense_Played" },
-          { name: 'Driver Skill', value: "Driver_Skill" },
+          { name: 'Driver Skill', value: "Driver_Rating" },
           { name: 'Teleop Cycles', value: "Teleop_Cycles" },
           { name: 'Times Died', value: "Died" },
           { name: 'Sum Auto Points', value: "Sum_Auto_Points" },
@@ -48,7 +56,7 @@ module.exports = {
 
     if(interaction.options.getBoolean("overall-scoring")){
       return interaction.editReply({
-        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSniR2r4SnU2iCR7dZRhS3_3kXdj4ZeF0Yv2hdJFHy2kiH-WAyJWExk0OUoLOFkxMgEAewVqehdPzF0/pubchart?oid=1047394600&format=image&rand="+Math.random(),
+        content: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYZsx8rXhViWNRfpBIALDpZCVFGlT0tN-R8LXTrdQ_TNQcY9sc6tX5G5s0jRGWtTKZSAKrM93oqCsy/pubchart?oid=1047394600&format=image&rand="+Math.random(),
       });
     }
 
@@ -58,7 +66,7 @@ module.exports = {
     if (team != null) {
       let res;
       try{
-        res = await axios.get(`https://dozer-backend.vercel.app/team/${team}`);
+        res = await axios.get(`https://dozer-backend-navy.vercel.app/team/${team}`);
       } catch (err) {
           if(err.response.data){
           return interaction.editReply(err.response.data);
