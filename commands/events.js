@@ -57,7 +57,6 @@ module.exports = {
         // Add 12 hours
         startDate.setHours(startDate.getHours() + 12);
         endDate.setHours(endDate.getHours() + 24);
-
         msg += `[**${event.name}**](<https://www.thebluealliance.com/event/${event.key}>) (${event.key})\n` +
                `${time(startDate)} - ${time(endDate)} (${time(startDate, 'R')})\n` +
                `${event.city}, ${event.state_prov}, ${event.country}\n\n`;

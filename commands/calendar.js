@@ -5,7 +5,7 @@ const { fetchFromGist } = require("./tools.js");
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('calendar')
-        .setDescription('Fetches the MM Rambotics calendar for the next week'),
+        .setDescription('Fetches the robotics calendar for the next week'),
 
     async execute(interaction) {
         await interaction.deferReply();
