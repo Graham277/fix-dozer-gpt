@@ -14,13 +14,14 @@ module.exports = {
     .setRequired(true)
   ),
 
-  async execute(interaction) {
-    await interaction.deferReply();
-
-    // Get the prompt from the interaction
+  async execute(interaction) {    
+    // Get the prompt from the interaction, send a reply to Discord
     const prompt = interaction.options.getString("Prompt");
+    const originalReply = "Q:" + prompt + "\n\n Processing your request...";
+    await interaction.reply(originalReply);
+    // await interaction.deferReply();
 
-    // Write the prompt to a file
+    // Write the prompt to the file
     const promptFilePath = 'prompt.txt';
     fs.writeFileSync(promptFilePath, prompt);
 
@@ -29,23 +30,21 @@ module.exports = {
     // Function to run Python script and notify when done
     function runPythonScript() {
       return new Promise((resolve) => {
-        const pythonProcess = spawn('python', ['your-script.py']); //REPLACE!!!
+        const pythonProcess = spawn('python3', ['CallFromJS.py']); 
     
         // When the Python process ends, resolve the promise
         pythonProcess.on('close', (code) => {
-          resolve(); // Simply resolve when done (we don't care about the exit code)
+          resolve(); 
         });
       });
     }
 
-    // Wait for the Python script to finish
     await runPythonScript();
 
-    // Read the response from the Python script
+    // Read the response from the Python script, send back to Discord
     const responseFilePath = 'response.txt';
-    const response = fs.readFileSync(responseFilePath, 'utf8');
-
-    // Send the response back to the Discord interaction
+    const pythonResponse = fs.readFileSync(responseFilePath, 'utf8');
+    const response =  "Q:" + prompt + "\n\nA:" + pythonResponse;
     await interaction.editReply(response);
   }
 }
