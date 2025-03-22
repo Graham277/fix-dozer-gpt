@@ -16,7 +16,7 @@ module.exports = {
   .addStringOption((option) =>
     option.setName("style")
     .setDescription("Happy, Sad, Angry")
-    .setRequired(true)
+    .setRequired(false)
   ),
 
   async execute(interaction) {
