@@ -71,10 +71,12 @@ module.exports = {
     const pythonResponse = fs.readFileSync(responseFilePath, 'utf8');
 
     var response
-    if (style == "Happy") {
+    if (style == "Happy" || style == "Sad" || style == "Angry") {
       response =  "Style: " + style + "\n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
     } else if (style == "CostcoGuys" || style == "UwU") {
       response =  "Style: Hidden Style \n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
+    } else {
+      response = "*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
     }
     await interaction.editReply(response);
   }
