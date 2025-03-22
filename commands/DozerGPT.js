@@ -12,6 +12,11 @@ module.exports = {
     option.setName("prompt")
     .setDescription("Your prompt to send to DozerGPT")
     .setRequired(true)
+  )
+  .addStringOption((option) =>
+    option.setName("style")
+    .setDescription("Happy, Sad, Angry")
+    .setRequired(true)
   ),
 
   async execute(interaction) {
@@ -19,18 +24,36 @@ module.exports = {
     const prompt = interaction.options.getString("prompt");
     const originalReply = "*Q:* " + prompt + "\n\n *Processing your request...*";
     await interaction.reply(originalReply);
-    // await interaction.deferReply();
 
     // Write the prompt to the file
-//    const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
-//    fs.writeFileSync(promptFilePath, prompt);
+    // const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
+    // fs.writeFileSync(promptFilePath, prompt);
+
+    const style = interaction.options.getString("style");
 
     const { spawn } = require('child_process');
-
     // Function to run Python script and notify when done
     function runPythonScript() {
       return new Promise((resolve) => {
-        const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/ArgumentCallFromJS.py', prompt]);
+        if (style == "Happy") {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/HappyCallFromJS.py', prompt]);
+        }
+        else if (style == "Sad") {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/SadCallFromJS.py', prompt]);
+        }
+        else if (style == "Angry") {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/AngryCallFromJS.py', prompt]);
+
+        }
+        else if (style == "CostcoGuys") {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
+        }
+        else if (style == "UwU") {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/UwUCallFromJS.py', prompt]);
+        } 
+        else {
+          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py', prompt]);
+        }
 
         // When the Python process ends, resolve the promise
         pythonProcess.on('close', (code) => {
