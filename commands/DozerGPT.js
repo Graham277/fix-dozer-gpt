@@ -31,28 +31,30 @@ module.exports = {
 
     const style = interaction.options.getString("style");
 
+
     const { spawn } = require('child_process');
     // Function to run Python script and notify when done
     function runPythonScript() {
       return new Promise((resolve) => {
+        var pythonProcess
         if (style == "Happy") {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/HappyCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/HappyCallFromJS.py', prompt]);
         }
         else if (style == "Sad") {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/SadCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/SadCallFromJS.py', prompt]);
         }
         else if (style == "Angry") {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/AngryCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/AngryCallFromJS.py', prompt]);
 
         }
         else if (style == "CostcoGuys") {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
         }
         else if (style == "UwU") {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/UwUCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/UwUCallFromJS.py', prompt]);
         } 
         else {
-          const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py', prompt]);
         }
 
         // When the Python process ends, resolve the promise
