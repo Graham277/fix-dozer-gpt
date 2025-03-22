@@ -22,15 +22,15 @@ module.exports = {
     // await interaction.deferReply();
 
     // Write the prompt to the file
-    const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
-    fs.writeFileSync(promptFilePath, prompt);
+//    const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
+//    fs.writeFileSync(promptFilePath, prompt);
 
     const { spawn } = require('child_process');
 
     // Function to run Python script and notify when done
     function runPythonScript() {
       return new Promise((resolve) => {
-        const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py']);
+        const pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/ArgumentCallFromJS.py', prompt]);
 
         // When the Python process ends, resolve the promise
         pythonProcess.on('close', (code) => {
