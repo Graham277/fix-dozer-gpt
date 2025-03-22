@@ -69,7 +69,13 @@ module.exports = {
     // Read the response from the Python script, send back to Discord
     const responseFilePath = '/home/dozer/GPTStuff/response.txt';
     const pythonResponse = fs.readFileSync(responseFilePath, 'utf8');
-    const response =  "*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
+
+    var response
+    if (style == "Happy") {
+      response =  "Style: " + style + "\n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
+    } else if (style == "CostcoGuys" || style == "UwU") {
+      response =  "Style: Hidden Style \n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
+    }
     await interaction.editReply(response);
   }
 }
