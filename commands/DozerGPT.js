@@ -17,7 +17,7 @@ module.exports = {
   async execute(interaction) {
     // Get the prompt from the interaction, send a reply to Discord
     const prompt = interaction.options.getString("prompt");
-    const originalReply = "Q: " + prompt + "\n\n Processing your request...";
+    const originalReply = "*Q:* " + prompt + "\n\n *Processing your request...*";
     await interaction.reply(originalReply);
     // await interaction.deferReply();
 
@@ -44,7 +44,7 @@ module.exports = {
     // Read the response from the Python script, send back to Discord
     const responseFilePath = '/home/dozer/GPTStuff/response.txt';
     const pythonResponse = fs.readFileSync(responseFilePath, 'utf8');
-    const response =  "Q: " + prompt + "\n\nA: " + pythonResponse;
+    const response =  "*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
     await interaction.editReply(response);
   }
 }
