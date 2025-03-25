@@ -15,7 +15,7 @@ module.exports = {
   )
   .addStringOption((option) =>
     option.setName("style")
-    .setDescription("Happy, Sad, Angry")
+    .setDescription("Enter a style for the response")
     .setRequired(false)
   ),
 
@@ -25,7 +25,7 @@ module.exports = {
     const style = interaction.options.getString("style");
 
     var originalReply
-    if (style == "Happy" || style == "Sad" || style == "Angry") {
+    if (style != null) {
       originalReply = "*Q:* " + prompt + "\n\nStyle: " + style +"\n\n *Processing your request...*";
     } 
     else if (style == "Costcoguys" || style == "UwU") {
@@ -36,24 +36,13 @@ module.exports = {
     }
     await interaction.reply(originalReply);
 
-    // Write the prompt to the file
-    // const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
-    // fs.writeFileSync(promptFilePath, prompt);
-
     const { spawn } = require('child_process');
     // Function to run Python script and notify when done
     function runPythonScript() {
       return new Promise((resolve) => {
         var pythonProcess
-        if (style == "Happy") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/HappyCallFromJS.py', prompt]);
-        }
-        else if (style == "Sad") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/SadCallFromJS.py', prompt]);
-        }
-        else if (style == "Angry") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/AngryCallFromJS.py', prompt]);
-
+        if (style != null && style != "Costcoguys" && style != "UwU") {
+          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/StyleCallFromJS.py', prompt, style]);
         }
         else if (style == "Costcoguys") {
           pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
