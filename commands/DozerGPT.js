@@ -28,7 +28,7 @@ module.exports = {
     if (style == "Happy" || style == "Sad" || style == "Angry") {
       originalReply = "*Q:* " + prompt + "\n\nStyle: " + style +"\n\n *Processing your request...*";
     } 
-    else if (style == "CostcoGuys" || style == "UwU") {
+    else if (style == "Costcoguys" || style == "UwU") {
       originalReply = "*Q:* " + prompt + "\n\nStyle: Hidden Style" + "\n\n *Processing your request...*";
     }
     else {
@@ -55,7 +55,7 @@ module.exports = {
           pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/AngryCallFromJS.py', prompt]);
 
         }
-        else if (style == "CostcoGuys") {
+        else if (style == "Costcoguys") {
           pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
         }
         else if (style == "UwU") {
@@ -82,7 +82,7 @@ module.exports = {
     if (style == "Happy" || style == "Sad" || style == "Angry") {
       response =  "*Q:* " + prompt + "\n\nStyle: " + style + "\n\n*A:* " + pythonResponse;
     } 
-    else if (style == "CostcoGuys" || style == "UwU") {
+    else if (style == "Costcoguys" || style == "UwU") {
       response =  "*Q:* " + prompt + "\n\nStyle: Hidden Style" + "\n\n*A:* " + pythonResponse;
     } 
     else {
