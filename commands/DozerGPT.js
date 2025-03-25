@@ -25,9 +25,12 @@ module.exports = {
     const style = interaction.options.getString("style");
 
     var originalReply
-    if (style != null) {
+    if (style == "Happy" || style == "Sad" || style == "Angry") {
       originalReply = "*Q:* " + prompt + "\n\nStyle: " + style +"\n\n *Processing your request...*";
     } 
+    else if (style == "CostcoGuys" || style == "UwU") {
+      originalReply = "*Q:* " + prompt + "\n\nStyle: Hidden Style" + "\n\n *Processing your request...*";
+    }
     else {
       originalReply = "*Q:* " + prompt + "\n\nNo Style\n\n *Processing your request...*";
     }
