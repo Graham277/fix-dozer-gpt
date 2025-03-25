@@ -42,16 +42,16 @@ module.exports = {
       return new Promise((resolve) => {
         var pythonProcess
         if (style != null && style != "Costcoguys" && style != "UwU") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/StyleCallFromJS.py', prompt, style]);
+          pythonProcess = spawn('python3', ['/home/dozer/DozerGPT/GPTStuff/StyleCallFromJS.py', prompt, style]);
         }
         else if (style == "Costcoguys") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/DozerGPT/GPTStuff/CostcoGuysCallFromJS.py', prompt]);
         }
         else if (style == "UwU") {
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/UwUCallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/DozerGPT/GPTStuff/UwUCallFromJS.py', prompt]);
         } 
         else{
-          pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py', prompt]);
+          pythonProcess = spawn('python3', ['/home/dozer/DozerGPT/GPTStuff/CallFromJS.py', prompt]);
         }
 
         // When the Python process ends, resolve the promise
