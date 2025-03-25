@@ -64,7 +64,7 @@ module.exports = {
     await runPythonScript();
 
     // Read the response from the Python script, send back to Discord
-    const responseFilePath = '/home/dozer/GPTStuff/response.txt';
+    const responseFilePath = '/home/dozer/DozerGPT/GPTStuff/response.txt';
     const pythonResponse = fs.readFileSync(responseFilePath, 'utf8');
 
     var response
