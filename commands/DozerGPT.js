@@ -22,7 +22,13 @@ module.exports = {
   async execute(interaction) {
     // Get the prompt from the interaction, send a reply to Discord
     const prompt = interaction.options.getString("prompt");
-    const originalReply = "*Q:* " + prompt + "\n\n *Processing your request...*";
+    var originalReply
+    if (style != null) {
+      originalReply = "*Q:* " + prompt + "\n\nStyle: " + style +"\n\n *Processing your request...*";
+    } 
+    else {
+      originalReply = "*Q:* " + prompt + "\n\nNo Style\n\n *Processing your request...*";
+    }
     await interaction.reply(originalReply);
 
     // Write the prompt to the file
@@ -53,7 +59,7 @@ module.exports = {
         else if (style == "UwU") {
           pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/UwUCallFromJS.py', prompt]);
         } 
-        else {
+        else{
           pythonProcess = spawn('python3', ['/home/dozer/GPTStuff/CallFromJS.py', prompt]);
         }
 
@@ -72,11 +78,13 @@ module.exports = {
 
     var response
     if (style == "Happy" || style == "Sad" || style == "Angry") {
-      response =  "Style: " + style + "\n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
-    } else if (style == "CostcoGuys" || style == "UwU") {
-      response =  "Style: Hidden Style \n\n*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
-    } else {
-      response = "*Q:* " + prompt + "\n\n*A:* " + pythonResponse;
+      response =  "*Q:* " + prompt + "\n\nStyle: " + style + "\n\n*A:* " + pythonResponse;
+    } 
+    else if (style == "CostcoGuys" || style == "UwU") {
+      response =  "*Q:* " + prompt + "\n\nStyle: Hidden Style" + "\n\n*A:* " + pythonResponse;
+    } 
+    else {
+      response = "*Q:* " + prompt + "\n\nNo Style\n\n*A:* " + pythonResponse;
     }
     await interaction.editReply(response);
   }
