@@ -22,6 +22,8 @@ module.exports = {
   async execute(interaction) {
     // Get the prompt from the interaction, send a reply to Discord
     const prompt = interaction.options.getString("prompt");
+    const style = interaction.options.getString("style");
+
     var originalReply
     if (style != null) {
       originalReply = "*Q:* " + prompt + "\n\nStyle: " + style +"\n\n *Processing your request...*";
@@ -34,9 +36,6 @@ module.exports = {
     // Write the prompt to the file
     // const promptFilePath = '/home/dozer/GPTStuff/prompt.txt';
     // fs.writeFileSync(promptFilePath, prompt);
-
-    const style = interaction.options.getString("style");
-
 
     const { spawn } = require('child_process');
     // Function to run Python script and notify when done
